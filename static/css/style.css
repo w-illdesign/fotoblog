@@ -1,0 +1,405 @@
+/* Déclarer la police locale */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900; /* variable font range */
+    font-style: normal;
+}
+
+
+/* Déclarer la police locale */
+@font-face {
+    font-family: 'FunnelSans-Light';
+    src: url('../fonts/FunnelSans-Light.ttf') format('truetype');
+    font-weight: 100 900; /* variable font range */
+    font-style: normal;
+}
+
+
+
+
+
+
+/* Reset simple */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+
+  /* Variables de thème */
+  :root{
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #101828;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent-contrast: #fff;
+    --input-border: #d1d5db;
+    --radius: 12px;
+    --shadow: 0 6px 20px rgba(16,24,40,0.08);
+  }
+
+  /* Layout */
+  body{
+    font-family: 'FunnelSans', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: block;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    line-height: 1.4;
+  }
+
+  /* Card contenant le formulaire */
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px;
+    border: 1px solid rgba(16,24,40,0.04);
+    margin: 0 auto; /* Centre horizontalement */
+}
+
+  h1{
+    margin: 0 0 14px 0;
+    font-size: 1.6rem;
+    letter-spacing: -0.2px;
+    text-align: center;
+    font-family: 'FunnelSans-Light';
+  }
+
+  p.lead{
+    margin: 0 0 18px 0;
+    color: var(--muted);
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  form p{
+    margin: 0 0 12px 0;
+  }
+
+  label{
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    color: #0f1724;
+  }
+
+  input[type="text"],
+  input[type="password"]{
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--input-border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(250,250,251,0.9));
+    font-size: 0.95rem;
+    transition: border-color .16s ease, box-shadow .16s ease, transform .08s ease;
+    outline: none;
+    color: var(--text);
+  }
+
+  input[type="text"]::placeholder,
+  input[type="password"]::placeholder{
+    color: #9aa0a6;
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus{
+    border-color: var(--accent);
+    box-shadow: 0 6px 18px rgba(37,99,235,0.08);
+    transform: translateY(-1px);
+  }
+
+  /* Button */
+  button[type="submit"]{
+    width: 100%;
+    display: inline-block;
+    margin-top: 8px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, var(--accent), #1d4ed8);
+    color: var(--accent-contrast);
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 6px 18px rgba(37,99,235,0.14);
+    transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  }
+
+  button[type="submit"]:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(37,99,235,0.16);
+  }
+
+  button[type="submit"]:active{
+    transform: translateY(-1px) scale(.997);
+  }
+
+  /* Small helper text */
+  .footnote{
+    margin-top: 12px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  /* Accessibility: focus visible outline */
+  :focus{
+    outline: 3px solid rgba(37,99,235,0.12);
+    outline-offset: 2px;
+  }
+
+  /* Responsive: reduce paddings on small screens */
+  @media (max-width:420px){
+    .login-card{ padding: 18px; border-radius: 10px; }
+    h1{ font-size: 1.3rem; }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg: #071024;
+      --card: #07162a;
+      --text: #e6eef8;
+      --muted: #9fb0c8;
+      --input-border: rgba(255,255,255,0.06);
+      --shadow: 0 6px 20px rgba(2,6,23,0.6);
+    }
+    input[type="text"],
+    input[type="password"]{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      color: var(--text);
+    }
+    label{ color: var(--text); }
+  }
+  
+  /* Messages d'erreurs */
+.errors_messages{
+  margin: 10px 0 14px 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.08); /* rouge léger */
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: #b91c1c; /* rouge foncé lisible */
+  font-size: 0.92rem;
+  line-height: 1.4;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Pour plusieurs erreurs listées */
+.errors_messages ul{
+  margin: 6px 0 0 0;
+  padding-left: 20px;
+}
+
+.errors_messages li{
+  margin-bottom: 4px;
+}
+.form-checkbox {
+  display: flex;
+  align-items: center;       /* centre verticalement la case et le texte */
+  justify-content: center;   /* centre horizontalement la case et le texte */
+  gap: 12px;                 /* espace entre la case et le texte */
+  margin-bottom: 18px;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+/* Cache l'input natif */
+.form-checkbox input[type="checkbox"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+  
+}
+
+/* Label visible (la case + texte) */
+.form-checkbox label {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center; /* centre le texte verticalement avec la case */
+  height: 36px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Cercle extérieur de la case */
+.form-checkbox label::before {
+  content: "";
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--input-border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,250,251,0.95));
+  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+  margin-right: 12px; /* espace entre la case et le texte */
+  transition: all .18s cubic-bezier(.2,.9,.2,1);
+  box-sizing: border-box;
+}
+
+/* Point intérieur (visible quand coché) */
+.form-checkbox label::after {
+  content: "";
+  position: absolute;
+  left: 12px; /* centré dans le cercle */
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--accent), #1d4ed8);
+  box-shadow: 0 6px 14px rgba(37,99,235,0.18), inset 0 -2px 6px rgba(0,0,0,0.06);
+  transition: transform .16s cubic-bezier(.2,.9,.2,1);
+  will-change: transform;
+}
+
+/* Quand coché */
+.form-checkbox input[type="checkbox"]:checked + label::after {
+  transform: translateY(-50%) scale(1);
+}
+.form-checkbox input[type="checkbox"]:checked + label::before {
+  border-color: var(--accent);
+  box-shadow: 0 8px 20px rgba(37,99,235,0.12);
+}
+
+/* Focus pour accessibilité */
+.form-checkbox input[type="checkbox"]:focus + label::before {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+  border-color: var(--accent);
+}
+
+/* Animation clic */
+.form-checkbox input[type="checkbox"]:active + label::before {
+  transform: scale(.98);
+}
+
+/* Responsive petit écran */
+@media (max-width:420px){
+  .form-checkbox label::before{ width:32px; height:32px; }
+  .form-checkbox label::after{ left:8px; width:16px; height:16px; }
+}
+
+.form-group{
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.form-group input{
+  width: 100%;
+  padding: 14px 12px 14px 12px; /* plus d'espace pour le label flottant */
+  border-radius: 10px;
+  border: 1px solid var(--input-border);
+  background: var(--card);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color .16s ease, box-shadow .16s ease;
+}
+
+.form-group label{
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  background: var(--card);
+  padding: 0 4px;
+  color: #9aa0a6;
+  font-size: 0.95rem;
+  pointer-events: none;
+  transition: 0.2s ease all;
+}
+
+/* Quand le champ est focus ou rempli */
+.form-group input:focus + label,
+.form-group input:not(:placeholder-shown) + label {
+  top: -8px;
+  left: 10px;
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+
+/* Séparateur "Ou se connecter avec" */
+.social-separator {
+    text-align: center;
+    margin: 20px 0;
+    color: var(--muted, #6b7280);
+    font-size: 0.9rem;
+    position: relative;
+}
+
+.social-separator span {
+    background: var(--card, #fff);
+    padding: 0 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.social-separator::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 10px;
+    right: 10px;
+    height: 1px;
+    background: var(--input-border, #d1d5db);
+    z-index: 0;
+}
+
+/* Bouton Google */
+.btn-google {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1px solid #a7a7a79a;
+    background: var(--card);
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+}
+
+.btn-google img {
+    width: 20px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.btn-google:hover {
+    background: #f3f4f6;
+    color: var(--card);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
+
+/* Texte conditions d’utilisation */
+.conditions-text {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--muted, #6b7280);
+    margin-top: 12px;
+}
+
+.conditions-text a {
+    color: var(--accent, #2563eb);
+    text-decoration: none;
+}
+
+.conditions-text a:hover {
+    text-decoration: underline;
+}

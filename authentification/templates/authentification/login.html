@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="login-card" role="main" aria-labelledby="site-title">
+        <h1 id="site-title">FotoBlog</h1>
+        <p class="lead">Connecte-toi pour partager tes photos</p>
+
+{% if form.errors %}
+<div class="errors_messages">
+  <strong>Erreur</strong>
+  <ul>
+    {% for field, errors in form.errors.items %}
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  <div class="form-group">
+    <input type="text" name="username" id="id_username" placeholder=" " required>
+    <label for="id_username">Nom d’utilisateur</label>
+  </div>
+
+  <div class="form-group">
+    <input type="password" name="password" id="id_password" placeholder=" " required>
+    <label for="id_password">Mot de passe</label>
+  </div>
+
+  <!-- Case à cocher afficher le mot de passe -->
+  <div class="form-checkbox">
+    <input type="checkbox" id="showPassword" onclick="togglePassword()">
+    <label for="showPassword">Afficher le mot de passe</label>
+  </div>
+
+  <!-- Bouton de connexion -->
+  <button type="submit">Se connecter</button>
+
+</form>
+
+        <!-- Pied de page / note -->
+        <p class="footnote">
+            {% if not user.is_authenticated %}
+                Mot de passe oublié ? Contacte l'administrateur.
+            {% else %}
+                <a href="{% url 'logout' %}">Se déconnecter</a>
+            {% endif %}
+        </p>
+    </div>
+    
+
+<!-- Séparateur pour connexion alternative -->
+<div class="social-separator">
+  <span> Ou se connecter avec </span>
+</div>
+
+<div style="text-align:center; margin-bottom: 12px;">
+  <a href="#" class="btn-google">
+    <img src="{% static 'icons/icons8-google.svg' %}" alt="Google">
+     Google
+  </a>
+</div>
+
+<p class="conditions-text">
+  En te connectant, tu acceptes nos 
+  <a href="#">Conditions d’utilisation</a> et 
+  <a href="#">Politique de confidentialité</a>.
+</p>
+<!-- Script pour basculer le type du champ password -->
+<script>
+function togglePassword() {
+    const pwd = document.getElementById("id_password");
+    pwd.type = pwd.type === "password" ? "text" : "password";
+}
+</script>
+
+{% endblock content %}
