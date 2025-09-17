@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="login-card" role="main" aria-labelledby="site-title">
+    <h1 id="site-title">FotoBlog</h1>
+    <p class="lead">Crée ton compte pour partager tes photos</p>
+
+    {% if form.errors %}
+    <div class="errors_messages">
+        <strong>Erreur</strong>
+        <ul>
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        <div class="form-group">
+            <input type="text" name="username" id="id_username" placeholder=" " required>
+            <label for="id_username">Nom d’utilisateur</label>
+        </div>
+
+        <div class="form-group">
+            <input type="email" name="email" id="id_email" placeholder=" " required>
+            <label for="id_email">Email</label>
+        </div>
+
+        <div class="form-group">
+            <div class="custom-select" id="roleSelect">
+                <input type="text" id="roleInput" placeholder=" " readonly required>
+                <label for="roleInput">Rôle</label>
+                <div class="options">
+                    {% for value, label in form.fields.role.choices %}
+                    <div class="option" data-value="{{ value }}">{{ label }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {{ form.role }} {# champ caché Django #}
+        </div>
+
+        <script>
+        const roleInput = document.getElementById('roleInput');
+        const roleSelect = document.getElementById('roleSelect');
+        const options = roleSelect.querySelectorAll('.option');
+        const hiddenRole = document.getElementById('id_role');
+
+        roleInput.addEventListener('click', () => {
+            const dropdown = roleSelect.querySelector('.options');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                roleInput.value = option.textContent;
+                roleInput.classList.add('filled'); 
+                hiddenRole.value = option.dataset.value;
+                roleSelect.querySelector('.options').style.display = 'none';
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!roleSelect.contains(e.target)) {
+                roleSelect.querySelector('.options').style.display = 'none';
+            }
+        });
+        </script>
+        
+        
+        <div class="password_conditions" id="passwordConditions">
+            <p>Votre mot de passe doit avoir :</p>
+    <ul>
+        {% for cond in password_conditions %}
+        <li id="cond-{{ cond.key }}">{{ cond.label }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+        <div class="form-group">
+            <input type="password" name="password1" id="id_password1" placeholder=" " required>
+            <label for="id_password1">Mot de passe</label>
+        </div>
+
+        <div class="form-group">
+            <input type="password" name="password2" id="id_password2" placeholder=" " required>
+            <label for="id_password2">Confirmer le mot de passe</label>
+        </div>
+
+        <!-- Conditions du mot de passe -->
+        
+        
+
+        <div class="form-checkbox">
+            <input type="checkbox" id="showPassword" onclick="togglePassword()">
+            <label for="showPassword">Afficher le mot de passe</label>
+        </div>
+
+        <button type="submit" id="signupBtn" disabled>Créer un compte</button>
+    </form>
+
+    <p class="footnote">
+        Déjà un compte ?  
+        <a href="{% url 'login' %}">Se connecter</a>
+    </p>
+
+ </div>  
+
+  <div class="social-separator">
+        <span> Ou continuer avec </span>
+  </div>
+
+  <div style="text-align:center; margin-bottom: 12px;">
+        <a href="#" class="btn-google">
+            <img src="{% static 'icons/icons8-google.svg' %}" alt="Google">
+            Google
+        </a>
+  </div>
+
+  <p class="conditions-text" >
+        En te connectant, tu acceptes nos 
+        <a href="#">Conditions d’utilisation</a> et 
+        <a href="#">Politique de confidentialité</a>.
+  </p>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const passwordInput = document.getElementById("id_password1");
+    const signupBtn = document.getElementById("signupBtn");
+    const conditions = {
+        length: /.{6,}/,          // au moins 6 caractères
+        uppercase: /[A-Z]/,       // au moins une majuscule
+        lowercase: /[a-z]/,       // au moins une minuscule
+        number: /[0-9]/           // au moins un chiffre
+    };
+    const errorsBox = document.getElementById("passwordConditions");
+
+    function checkConditions() {
+        let allValid = true;
+        const value = passwordInput.value;
+
+        for (let key in conditions) {
+            const conditionEl = document.getElementById("cond-" + key);
+            if (!conditionEl) continue;
+
+            if (conditions[key].test(value)) {
+                conditionEl.style.color = "#16a34a"; // vert
+                conditionEl.style.fontWeight = "500";
+            } else {
+                conditionEl.style.color = "#c2c2c2"; // gris clair
+                conditionEl.style.fontWeight = "normal";
+                allValid = false;
+            }
+        }
+
+        // Met à jour le style global de la box
+        if (allValid) {
+            errorsBox.style.border = "1px solid #16a34a"; // bordure verte
+        } else {
+            errorsBox.style.border = "1px solid rgba(255, 255, 255, 0.4)";
+        }
+
+        signupBtn.disabled = !allValid;
+    }
+
+    // Toujours à l'écoute
+    passwordInput.addEventListener("input", checkConditions);
+
+    // Vérifie immédiatement au chargement si un mot de passe est pré-rempli
+    checkConditions();
+});
+</script>
+{% endblock content %}

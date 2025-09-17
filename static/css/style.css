@@ -49,6 +49,8 @@
     line-height: 1.4;
   }
 
+
+
   /* Card contenant le formulaire */
 .login-card {
     width: 100%;
@@ -177,22 +179,40 @@
   }
   
   /* Messages d'erreurs */
-.errors_messages{
-  margin: 10px 0 14px 0;
+.errors_messages, .password_conditions{
+  margin: 10px 0 20px 0;
   padding: 10px 14px;
   border-radius: 10px;
-  background: rgba(220, 38, 38, 0.08); /* rouge léger */
-  border: 1px solid rgba(220, 38, 38, 0.4);
-  color: #b91c1c; /* rouge foncé lisible */
+ 
   font-size: 0.92rem;
   line-height: 1.4;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
+.errors_messages{
+    background: rgba(220, 38, 38, 0.08); /* rouge léger */
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  color: #b91c1c; /* rouge foncé lisible */
+}
+
+.password_conditions{
+    background: rgba(255, 255, 255, 0.08); /* blanc léger */color: #16a34a;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    
+}
+
+.password_conditions p {
+    font-weight: 600;           /* Texte un peu plus épais */
+    color:  #16a34a;             /* Rouge foncé pour le texte */
+    text-align: center;
+    margin-bottom: 10px;        /* Espace sous le texte */
+    font-size: 16px;            /* Taille du texte */
+    font-family: Arial, sans-serif; /* Police lisible */
+}
 /* Pour plusieurs erreurs listées */
 .errors_messages ul{
   margin: 6px 0 0 0;
-  padding-left: 20px;
+  padding-left: 10px;
 }
 
 .errors_messages li{
@@ -292,6 +312,52 @@
   .form-checkbox label::after{ left:8px; width:16px; height:16px; }
 }
 
+/* Tous les inputs autofill pour Chrome, Edge, Safari */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0px 1000px var(--card) inset !important; /* Fond */
+    -webkit-text-fill-color: white !important; /* Texte */
+    caret-color: white !important; /* Curseur */
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Autofill Firefox */
+input:-moz-autofill {
+    box-shadow: 0 0 0px 1000px var(--card) inset !important;
+    -moz-text-fill-color: white !important;
+    caret-color: var(--accent) !important;
+}
+
+/* S'assure que le texte reste visible même avec placeholder flottant */
+input::placeholder {
+    color: transparent;
+}
+
+/* Optionnel : si label flottant utilise input:not(:placeholder-shown) */
+input:not(:placeholder-shown) {
+    color: white;
+}
+
+input {
+    color: white !important; /* Texte visible */
+}
+
+/* Pour autofill */
+input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0px 1000px var(--card) inset !important;
+    color: white !important; /* Texte */
+    caret-color: var(--accent) !important;
+}
+
+
+/* Autofill pour Firefox */
+input:-moz-autofill {
+    box-shadow: 0 0 0px 1000px var(--card) inset !important;
+    -moz-text-fill-color: var(--accent) !important;
+    caret-color: var(--accent) !important;
+}
 .form-group{
   position: relative;
   margin-bottom: 20px;
@@ -324,11 +390,13 @@
 /* Quand le champ est focus ou rempli */
 .form-group input:focus + label,
 .form-group input:not(:placeholder-shown) + label {
-  top: -8px;
+  top: -6px;
   left: 10px;
   font-size: 0.8rem;
   color: var(--accent);
 }
+
+
 
 
 /* Séparateur "Ou se connecter avec" */
@@ -341,7 +409,7 @@
 }
 
 .social-separator span {
-    background: var(--card, #fff);
+    background: var(--bg, #fff);
     padding: 0 10px;
     position: relative;
     z-index: 1;
@@ -358,20 +426,25 @@
     z-index: 0;
 }
 
-/* Bouton Google */
-.btn-google {
+/* Boutons Google et Déconnexion */
+.btn-google,
+.btn-deconnexion {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 10px 16px;
     border-radius: 12px;
-    border: 1px solid #a7a7a79a;
-    background: var(--card);
-    color: #fff;
     font-weight: 500;
     text-decoration: none;
     transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+}
+
+/* Bouton Google */
+.btn-google {
+    border: 1px solid #a7a7a79a;
+    background: var(--card);
+    color: #fff;
 }
 
 .btn-google img {
@@ -387,12 +460,32 @@
     transform: translateY(-2px);
 }
 
+/* Bouton Déconnexion */
+.btn-deconnexion {
+    border: 1px solid #f87171; /* rouge clair pour différencier */
+    background: #fee2e2;       /* fond rouge très léger */
+    color: #b91c1c;            /* texte rouge foncé */
+}
+
+.btn-deconnexion img {
+    width: 20px;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+.btn-deconnexion:hover {
+    background: #fca5a5;      /* rouge un peu plus marqué au hover */
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transform: translateY(-2px);
+}
 /* Texte conditions d’utilisation */
 .conditions-text {
     text-align: center;
     font-size: 0.8rem;
     color: var(--muted, #6b7280);
     margin-top: 12px;
+    
 }
 
 .conditions-text a {
@@ -402,4 +495,195 @@
 
 .conditions-text a:hover {
     text-decoration: underline;
+}
+
+
+
+
+
+ .custom-select {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select input {
+    width: 100%;
+    padding: 14px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--input-border);
+    background: var(--card);
+    font-size: 0.95rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.custom-select label {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    background: var(--card);
+    padding: 0 4px;
+    color: #9aa0a6;
+    font-size: 0.95rem;
+    pointer-events: none;
+    transition: 0.2s ease all;
+}
+
+.custom-select input.filled + label {
+    top: -8px;
+    left: 10px;
+    font-size: 0.8rem;
+    color: var(--accent);
+}
+
+.custom-select .options {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    border: 1px solid var(--input-border);
+    border-radius: 10px;
+    background: var(--card);
+    z-index: 10;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.custom-select .option {
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+.custom-select .option:hover {
+    background: var(--accent);
+    color: var(--accent-contrast);
+}
+
+
+
+
+/* --- User Info (compte normal) --- */
+.user-info,
+.preview-user-info {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    
+}
+
+/* Détails texte */
+.user-info .details p {
+    margin: 2px;
+    font-size: 0.95rem;
+    color: var(--text);
+
+    /* Gestion du texte trop long */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+/* User info classique */
+.user-info {
+    gap: 16px;
+    margin-top: 18px;
+    padding: 12px;
+}
+
+.user-info .profile-photo img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+    background: #ffffff88;
+}
+
+/* Petite photo générique */
+.profile-photo img {
+    width: 34px;
+    height: 34px;
+}
+
+/* --- Preview photo (modal) --- */
+.preview-user-info {
+    gap: 20px;
+    padding: 16px;
+    justify-content: center; /* centre horizontalement */
+}
+
+.preview-photo img {
+    width: 104px; /* plus grande que user-info */
+    height: 104px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent);
+    background: #ffffff88;
+}
+
+
+
+/* --- Fenêtre modale --- */
+.modal {
+  display: none; /* masquée par défaut */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+
+  /* Couleur semi-transparente avec flou derrière */
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Contenu de la modale */
+.modal-content {
+  background: var(--card, #fff);
+  padding: 24px;
+  border-radius: var(--radius, 12px);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+/* Titres */
+.modal-content h2 {
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+  
+}
+
+/* Input fichier */
+.modal-content form input[type="file"] {
+  margin: 12px 0;
+  display: none; /* on cache le natif pour bouton stylé */
+}
+
+/* Boutons */
+.modal-content button,
+#importBtn {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent, #2563eb);
+  color: var(--accent-contrast, #fff);
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease, transform 0.12s ease;
+}
+
+.modal-content button:hover,
+#importBtn:hover {
+  background: #1e40af;
+  transform: translateY(-1px);
 }

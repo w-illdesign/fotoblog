@@ -19,6 +19,7 @@
 </div>
 {% endif %}
 
+
 <form method="post" novalidate>
   {% csrf_token %}
 
@@ -31,17 +32,38 @@
     <input type="password" name="password" id="id_password" placeholder=" " required>
     <label for="id_password">Mot de passe</label>
   </div>
-
+        
   <!-- Case à cocher afficher le mot de passe -->
   <div class="form-checkbox">
     <input type="checkbox" id="showPassword" onclick="togglePassword()">
     <label for="showPassword">Afficher le mot de passe</label>
   </div>
 
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+    // Page de connexion : toggle mot de passe
+    const showPwd = document.getElementById("showPassword");
+    const pwd = document.getElementById("id_password");
+
+    if (showPwd && pwd) {
+        showPwd.addEventListener("change", () => {
+            pwd.type = showPwd.checked ? "text" : "password";
+        });
+    }
+});
+</script>
   <!-- Bouton de connexion -->
   <button type="submit">Se connecter</button>
 
 </form>
+<p class="footnote">
+    {% if not user.is_authenticated %}
+        Pas encore de compte ?  
+        <a href="{% url 'signup' %}">Créer un compte</a>
+    
+    {% endif %}
+</p>
 
         <!-- Pied de page / note -->
         <p class="footnote">
@@ -71,12 +93,5 @@
   <a href="#">Conditions d’utilisation</a> et 
   <a href="#">Politique de confidentialité</a>.
 </p>
-<!-- Script pour basculer le type du champ password -->
-<script>
-function togglePassword() {
-    const pwd = document.getElementById("id_password");
-    pwd.type = pwd.type === "password" ? "text" : "password";
-}
-</script>
 
 {% endblock content %}

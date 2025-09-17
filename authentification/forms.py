@@ -1,12 +1,14 @@
 from django import forms
+from .models import User
+from django.contrib.auth.forms import UserCreationForm
 
-class LoginForm(forms.Form):
-    username = forms.CharField(
-        label="",
-        max_length=150,
-        widget=forms.TextInput(attrs={'placeholder': ''})
+class SignupForm(UserCreationForm):
+    role = forms.ChoiceField(
+        choices=User.ROLE_CHOICES,
+        required=True,
+        widget=forms.HiddenInput()  # on cache l'input natif
     )
-    password = forms.CharField(
-        label="",
-        widget=forms.PasswordInput(attrs={'placeholder': ''})
-    )
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "role", "password1", "password2")

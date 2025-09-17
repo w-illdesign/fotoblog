@@ -1,5 +1,125 @@
-# blog/templates/blog/home.html
 {% extends 'base.html' %}
 {% block content %}
-    <p>Vous êtes connecté !</p>
+{% load static %}
+
+<div class="login-card" role="main" aria-labelledby="site-title">
+        <h1 id="site-title">FotoBlog</h1>
+<p class="lead">Bonjour {{ user.username }}</p>
+
+
+{% if user.is_authenticated %}
+<div class="user-info">
+    <div class="profile-photo">
+        {% if user.profile_photo %}
+            <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}">
+        {% else %}
+            <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
+        {% endif %}
+    </div>
+    <div class="details">
+        <p><strong>Nom :</strong> {{ user.username }}</p>
+        <p><strong>Email :</strong> {{ user.email }}</p>
+        <p><strong>Rôle :</strong> {{ user.role }}</p>
+    </div>
+</div>
+{% endif %}
+
+    </div>
+    
+
+<!-- Séparateur pour connexion alternative -->
+<div class="social-separator">
+  <span>  Vous êtes </span>
+</div>
+
+<div style="text-align:center; margin-bottom: 12px;">
+{% if user.is_authenticated %}
+  <a href="{% url 'logout' %}" class="btn-deconnexion">
+      Se déconnecter
+    <img src="{% static 'icons/right-to-bracket-solid-full.svg' %}" alt="Déconnexion">
+    
+  </a>
+{% endif %}    
+    
+</div>
+
+<p class="conditions-text">
+  
+</p>
+
+{% if user.is_authenticated and not user.profile_photo %}
+<div id="profileModal" class="modal">
+  <div class="modal-content">
+    <h2>Vous n'avez pas de photo de profil</h2>
+    
+    <form method="post" enctype="multipart/form-data" action="{% url 'update_profile_photo' %}">
+      {% csrf_token %}
+      
+      <!-- Input fichier caché -->
+      <input type="file" name="profile_photo" id="profilePhotoInput" accept="image/*" required style="display:none">
+      
+      
+      <div id="previewContainer" style="margin-top:5px; margin-bottom:5px; display:flex; justify-content:center;">
+  <div class="preview-user-info">
+      
+    <div class="profile-photo preview-photo">
+      <!-- Photo par défaut -->
+      <img id="currentPhoto" 
+           src="{% static 'icons/user-light-full.svg' %}" 
+           alt="Photo par défaut">
+      <!-- Preview (initialement cachée) -->
+      <img id="previewImage" 
+           src="#" 
+           alt="Aperçu" 
+           style="display:none;">
+    </div>
+  </div>
+</div>
+  
+      
+      <!-- Bouton stylé pour déclencher l'input -->
+      <button type="button" id="importBtn">Importer</button>
+
+      <!-- Prévisualisation -->
+      
+
+      <button type="submit" style="margin-top:12px;">Enregistrer</button>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const fileInput = document.getElementById("profilePhotoInput");
+  const importBtn = document.getElementById("importBtn");
+  const previewImage = document.getElementById("previewImage");
+  const currentPhoto = document.getElementById("currentPhoto");
+
+  // Clique sur le bouton pour ouvrir le sélecteur de fichier
+  importBtn.addEventListener("click", () => fileInput.click());
+
+  // Afficher la preview quand l'utilisateur choisit un fichier
+  fileInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if(file){
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        previewImage.src = event.target.result;
+        previewImage.style.display = "block";
+        currentPhoto.style.display = "none"; // cacher l'image par défaut
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Affiche le modal immédiatement
+  const modal = document.getElementById("profileModal");
+  if(modal){
+    modal.style.display = "flex";
+  }
+});
+</script>
+{% endif %}
+
 {% endblock content %}
+
