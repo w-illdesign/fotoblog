@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="login-card">
+    <h2>Écrire un billet</h2>
+    <form method="post" enctype="multipart/form-data" class="blog-photo-form">
+        {% csrf_token %}
+        <div class="form-group-container">
+            <div class="form-group">
+                {{ blog_form.title.label_tag }}
+                {{ blog_form.title }}
+            </div>
+            <div class="form-group">
+                {{ blog_form.content.label_tag }}
+                {{ blog_form.content }}
+            </div>
+        </div>
+
+        <div class="form-group-container">
+            <div class="form-group">
+                {{ photo_form.image.label_tag }}
+                {{ photo_form.image }}
+            </div>
+            <div class="form-group">
+                {{ photo_form.caption.label_tag }}
+                {{ photo_form.caption }}
+            </div>
+        </div>
+
+        <button type="submit">Publier</button>
+    </form>
+</div>
+{% endblock content %}

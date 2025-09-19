@@ -1,33 +1,42 @@
+# fotoblog/urls.py
 from django.contrib import admin
 from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 
-# Vues d'authentification
+# Auth views
 from authentification.views import LoginPageView, LogoutUserView, SignupPageView
 
-# Vues du blog
-from blog.views import HomeView, UpdateProfilePhotoView
+# Blog views (import explicite)
+from blog.views import (
+    HomeView,
+    PhotoUploadView,
+    UpdateProfilePhotoView,
+    BlogAndPhotoUploadView,
+    BlogDetailView,
+    ToggleLikeView,   # <-- important
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # Login
+    # Auth
     path('', LoginPageView.as_view(), name='login'),
-
-    # Logout
     path('logout/', LogoutUserView.as_view(), name='logout'),
-
-    # Inscription
     path('signup/', SignupPageView.as_view(), name='signup'),
 
-    # Page d'accueil
+    # Blog
     path('home/', HomeView.as_view(), name='home'),
-
-    # Mise à jour de la photo de profil
+    path('photo/upload/', PhotoUploadView.as_view(), name='photo_upload'),
     path('update-profile-photo/', UpdateProfilePhotoView.as_view(), name='update_profile_photo'),
+    path('create/', BlogAndPhotoUploadView.as_view(), name='create_blog_post'),
+
+    # Blog detail
+    path('blog/<int:blog_id>/', BlogDetailView.as_view(), name='view_blog'),
+
+    # Toggle like (URL attend un param photo_id)
+    path('photo/<int:photo_id>/like/', ToggleLikeView.as_view(), name='toggle_like'),
 ]
 
-# Sert les fichiers médias uniquement en DEV
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

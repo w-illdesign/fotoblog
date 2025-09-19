@@ -2,87 +2,407 @@
 {% block content %}
 {% load static %}
 
+{% load custom_tags %}
 <div class="login-card" role="main" aria-labelledby="site-title">
-        <h1 id="site-title">FotoBlog</h1>
-<p class="lead">Bonjour {{ user.username }}</p>
+    <h1 id="site-title">FotoBlog</h1>
+    <p class="lead">Bonjour {{ user.username }}</p>
+
+    {% if user.is_authenticated %}
+    <div class="user-info">
+        <div class="profile-photo">
+            {% if user.profile_photo %}
+                <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}">
+            {% else %}
+                <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
+            {% endif %}
+        </div>
+        <div class="details">
+            <p><strong>Nom :</strong> {{ user.username }}</p>
+            <p><strong>Email :</strong> {{ user.email }}</p>
+            <p><strong>Rôle :</strong> {{ user.role }}</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Galerie -->
+<div class="social-separator">
+  <span>📷 Galerie de photos</span>
+  
+  
+</div>
+{% for photo in photos %}
+  {% with photo.blog_set.all|first as related_blog %}
+    <div class="photo-card-wrapper">
+      {% if related_blog %}
+        <a href="{% url 'view_blog' related_blog.id %}" class="photo-card-link">
+      {% endif %}
+
+          <div class="photo-card" data-photo-id="{{ photo.id }}">
+              <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
+              <div class="photo-info">
+                  <p class="caption">{{ photo.caption }}</p>
+                  <p class="uploader">Ajouté par : {{ photo.uploader.username }}</p>
+                  <p class="date">{{ photo.date_created|date:"d M Y H:i" }}</p>
+
+                  <!-- Likes -->
+                  <div class="likes">
+                      {% if user.is_authenticated %}
+                          <button class="like-btn {% if photo_likes|dict_get:photo.id %}liked{% endif %}">
+                              {% if photo_likes|dict_get:photo.id %}
+                                  <!-- Cœur rempli SVG -->
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="red" viewBox="0 0 24 24">
+                                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
+                                               4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 
+                                               3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 
+                                               11.54L12 21.35z"/>
+                                  </svg>
+                              {% else %}
+                                  <!-- Cœur vide SVG -->
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
+                                               4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 
+                                               3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 
+                                               11.54L12 21.35z"/>
+                                  </svg>
+                              {% endif %}
+                          </button>
+                          <span class="likes-count">{{ photo.likes.count }}</span>
+                      {% endif %}
+                  </div>
+              </div>
+          </div>
+
+      {% if related_blog %}
+        </a>
+      {% endif %}
+    </div>
+  {% endwith %}
+{% endfor %}
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const heartFilled = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="red" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
+                     4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 
+                     3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 
+                     11.54L12 21.35z"/>
+        </svg>
+    `;
+    const heartEmpty = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
+                     4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 
+                     3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 
+                     11.54L12 21.35z"/>
+        </svg>
+    `;
+
+    document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const card = btn.closest('.photo-card');
+            const photoId = card.dataset.photoId;
+
+            fetch(`/photo/${photoId}/like/`, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                },
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerHTML = data.liked ? heartFilled : heartEmpty;
+                card.querySelector('.likes-count').textContent = data.likes_count;
+                btn.classList.toggle('liked', data.liked);
+            });
+        });
+    });
+});
+</script>
+<style>
+    
+    
+    /* Container likes */
+.likes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-size: 1rem;
+}
+
+/* Bouton cœur */
+.like-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.3rem;
+    transition: transform 0.15s ease, color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* Animation au clic */
+.like-btn:active {
+    transform: scale(1.2);
+}
+
+/* Cœur plein = liked */
+.like-btn.liked {
+    color: #ef4444; /* rouge vif */
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Cœur vide = non liké */
+.like-btn {
+    color: #9ca3af; /* gris clair */
+}
+
+/* Nombre de likes */
+.likes-count {
+    font-size: 0.9rem;
+    color: var(--text);
+    font-weight: 500;
+}
+
+/* Responsive petit écran */
+@media (max-width: 420px) {
+    .likes {
+        font-size: 0.9rem;
+        gap: 6px;
+    }
+    .like-btn {
+        font-size: 1.1rem;
+    }
+}
+
+
+/* Container et grille */
+.gallery-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+  background: var(--bg);
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px; /* espace entre cartes */
+  align-items: stretch;
+}
+
+/* Lien englobant la carte : rend l'ensemble cliquable */
+.photo-card-link {
+  display: block;           
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Carte */
+.photo-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: transform 0.18s cubic-bezier(.2,.9,.2,1), box-shadow 0.18s ease;
+  cursor: pointer;
+  min-height: 320px;
+  margin-bottom: 12px; /* marge entre cartes pour blog */
+}
+
+/* Image */
+.photo-card img {
+  display: block;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+/* Infos sous l'image */
+.photo-info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 0 auto;
+}
+
+.caption {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.uploader, .date {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Hover / focus */
+.photo-card-link:hover .photo-card,
+.photo-card-link:focus .photo-card {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(16,24,40,0.12);
+}
+
+/* Focus visible pour accessibilité */
+.photo-card-link:focus-visible {
+  outline: none;
+}
+.photo-card-link:focus-visible .photo-card {
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+  transform: translateY(-4px);
+}
+
+/* Overlay "Voir le billet" au hover/focus */
+.photo-card .overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2,6,23,0.0);
+  color: #fff;
+  font-weight: 600;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.16s ease, background 0.16s ease;
+}
+
+.photo-card-link:hover .photo-card .overlay,
+.photo-card-link:focus .photo-card .overlay,
+.photo-card-link:focus-visible .photo-card .overlay {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(2,6,23,0.25), rgba(2,6,23,0.45));
+  pointer-events: none;
+}
+
+/* Petit badge au centre */
+.photo-card .overlay .label {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 0.95rem;
+  backdrop-filter: blur(4px);
+}
+
+/* Responsive : réduit la hauteur de l'image sur mobile */
+@media (max-width: 640px) {
+  .photo-card { min-height: auto; }
+  .photo-card img { height: 160px; }
+  .photo-grid { gap: 12px; }
+  .caption { white-space: normal; }
+}
+
+/* Aligner les likes à droite */
+.photo-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.likes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    margin-left: auto; /* pousse le bloc à droite */
+}
+
+.like-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: transform 0.12s ease;
+}
+
+.like-btn svg {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.12s ease, fill 0.2s ease, stroke 0.2s ease;
+}
+
+.like-btn.liked svg {
+    fill: red;
+    stroke: red;
+}
+
+.like-btn:hover svg {
+    transform: scale(1.2);
+}
+
+.likes-count {
+    font-weight: 500;
+    vertical-align: middle;
+}
+</style>
+
+<!-- Bouton pour aller à la page uploader -->
+<div style="text-align:center; margin: 20px 0;">
+    <a href="{% url 'photo_upload' %}" class="btn-upload">
+        Ajouter une photo
+    </a>
+</div>
+
 
 
 {% if user.is_authenticated %}
-<div class="user-info">
-    <div class="profile-photo">
-        {% if user.profile_photo %}
-            <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}">
-        {% else %}
-            <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
-        {% endif %}
-    </div>
-    <div class="details">
-        <p><strong>Nom :</strong> {{ user.username }}</p>
-        <p><strong>Email :</strong> {{ user.email }}</p>
-        <p><strong>Rôle :</strong> {{ user.role }}</p>
-    </div>
-</div>
+  <div style="text-align:center; margin: 12px 0;">
+      <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
+  </div>
 {% endif %}
 
-    </div>
-    
 
-<!-- Séparateur pour connexion alternative -->
-<div class="social-separator">
-  <span>  Vous êtes </span>
-</div>
-
-<div style="text-align:center; margin-bottom: 12px;">
+<!-- Déconnexion -->
+<div style="text-align:center; margin: 20px 0;">
 {% if user.is_authenticated %}
   <a href="{% url 'logout' %}" class="btn-deconnexion">
       Se déconnecter
-    <img src="{% static 'icons/right-to-bracket-solid-full.svg' %}" alt="Déconnexion">
-    
+      <img src="{% static 'icons/right-to-bracket-solid-full.svg' %}" alt="Déconnexion">
   </a>
 {% endif %}    
-    
 </div>
 
-<p class="conditions-text">
-  
-</p>
-
 {% if user.is_authenticated and not user.profile_photo %}
+<!-- Modal ajout photo profil -->
 <div id="profileModal" class="modal">
   <div class="modal-content">
     <h2>Vous n'avez pas de photo de profil</h2>
     
     <form method="post" enctype="multipart/form-data" action="{% url 'update_profile_photo' %}">
       {% csrf_token %}
-      
-      <!-- Input fichier caché -->
       <input type="file" name="profile_photo" id="profilePhotoInput" accept="image/*" required style="display:none">
       
-      
-      <div id="previewContainer" style="margin-top:5px; margin-bottom:5px; display:flex; justify-content:center;">
-  <div class="preview-user-info">
-      
-    <div class="profile-photo preview-photo">
-      <!-- Photo par défaut -->
-      <img id="currentPhoto" 
-           src="{% static 'icons/user-light-full.svg' %}" 
-           alt="Photo par défaut">
-      <!-- Preview (initialement cachée) -->
-      <img id="previewImage" 
-           src="#" 
-           alt="Aperçu" 
-           style="display:none;">
-    </div>
-  </div>
-</div>
+      <div id="previewContainer" style="margin:5px 0; display:flex; justify-content:center;">
+        <div class="preview-user-info">
+          <div class="profile-photo preview-photo">
+            <img id="currentPhoto" src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
+            <img id="previewImage" src="#" alt="Aperçu" style="display:none;">
+          </div>
+        </div>
+      </div>
   
-      
-      <!-- Bouton stylé pour déclencher l'input -->
       <button type="button" id="importBtn">Importer</button>
-
-      <!-- Prévisualisation -->
-      
-
       <button type="submit" style="margin-top:12px;">Enregistrer</button>
     </form>
   </div>
@@ -95,10 +415,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const previewImage = document.getElementById("previewImage");
   const currentPhoto = document.getElementById("currentPhoto");
 
-  // Clique sur le bouton pour ouvrir le sélecteur de fichier
   importBtn.addEventListener("click", () => fileInput.click());
 
-  // Afficher la preview quand l'utilisateur choisit un fichier
   fileInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if(file){
@@ -106,20 +424,55 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.onload = (event) => {
         previewImage.src = event.target.result;
         previewImage.style.display = "block";
-        currentPhoto.style.display = "none"; // cacher l'image par défaut
+        currentPhoto.style.display = "none";
       };
       reader.readAsDataURL(file);
     }
   });
 
-  // Affiche le modal immédiatement
   const modal = document.getElementById("profileModal");
-  if(modal){
-    modal.style.display = "flex";
-  }
+  if(modal){ modal.style.display = "flex"; }
 });
 </script>
 {% endif %}
 
-{% endblock content %}
 
+<!-- Boutons supplémentaires -->
+<style>
+.btn-upload {
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.2s;
+    margin-top: 12px;
+}
+
+.btn-upload:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(37,99,235,0.16);
+}
+
+.btn-create {
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(90deg, #16a34a, #059669);
+    color: #fff;
+    font-weight: 500;
+    text-decoration: none;
+    transition: 0.2s;
+    margin-top: 12px;
+}
+
+.btn-create:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(22,163,52,0.16);
+}
+</style>
+{% endblock content %}
