@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="blog-card">
+    <h2>Modifier le billet</h2>
+
+    <!-- Affichage de la photo associée -->
+    {% if blog.photo %}
+    <div class="form-group">
+        <img id="image-preview" src="{{ blog.photo.image.url }}" alt="Aperçu de l'image">
+        <p style="margin-top:6px; color:var(--muted); font-size:14px;">{{ blog.photo.caption }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Formulaire d'édition -->
+    <form method="post" action="{% url 'edit_blog' blog_id=blog.id %}" class="blog-photo-form">
+        {% csrf_token %}
+        <div class="form-group-container">
+            <div class="form-group">
+                <label for="id_title">Titre</label>
+                <input type="text" name="title" id="id_title" value="{{ edit_form.title.value|default_if_none:'' }}">
+                {% for error in edit_form.title.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group" style="flex:1 1 100%;">
+                <label for="id_content">Contenu</label>
+                <textarea name="content" id="id_content">{{ edit_form.content.value|default_if_none:'' }}</textarea>
+                {% for error in edit_form.content.errors %}
+                    <div class="form-error">{{ error }}</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% for error in edit_form.non_field_errors %}
+            <div class="form-error">{{ error }}</div>
+        {% endfor %}
+
+        <button type="submit" id="edit-btn" name="edit_blog">Sauvegarder</button>
+    </form>
+
+    <!-- Formulaire suppression -->
+    <form method="post" action="{% url 'edit_blog' blog_id=blog.id %}" id="delete-form">
+        {% csrf_token %}
+        <input type="hidden" name="delete_blog" value="1">
+        <button type="submit" id="delete-btn">Supprimer</button>
+    </form>
+</div>
+
+
+
+{% endblock content %}

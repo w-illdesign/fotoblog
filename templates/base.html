@@ -7,14 +7,444 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>FotoBlog</title>
+
+    <!-- CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <!-- Scripts principaux -->
     <script src="{% static 'js/script.js' %}" defer></script>
 
-   
+    <style>
+    /* ================================
+       BASE : liens et boutons
+    ================================ */
+    a, button {
+        position: relative;         /* nécessaire pour le ripple */
+        overflow: hidden;           /* contient le ripple */
+        display: inline-block;
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+        background: none;
+        border: none;
+        text-decoration: none;
+        user-select: none;
+        touch-action: manipulation;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    a:hover, button:hover {
+        background-color: rgba(0, 0, 0, 0.08);
+    }
+
+    /* ================================
+       RIPPLE EFFECT
+    ================================ */
+    .ripple {
+        position: absolute;
+        border-radius: 50%;
+        transform: scale(0);
+        opacity: 0.6;
+        pointer-events: none;
+        will-change: transform, opacity;
+        background: #ffffff39;
+        animation: ripple-expand 900ms linear;
+        z-index: 9999;
+    }
+
+    @keyframes ripple-expand {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+
+    /* ================================
+       BOUTONS SPECIFIQUES
+    ================================ */
+    .button-container {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .btn-create {
+        flex: 2;
+        padding: 10px 16px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #16a34a, #059669);
+        color: #fff;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(22,163,52,0.16);
+    }
+
+    .btn-upload {
+        flex: 1;
+        padding: 10px 16px;
+        border-radius: 12px;
+        background: linear-gradient(90deg, #2563eb, #1d4ed8);
+        color: #fff;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .btn-upload:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(37,99,235,0.16);
+    }
+
+    /* ================================
+       SUPPRESSION FOCUS / HIGHLIGHT
+    ================================ */
+    a, button, input, textarea, select, summary, [role="button"], [tabindex] {
+        outline: none !important;
+        box-shadow: none !important;
+        -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+        -webkit-focus-ring-color: transparent !important;
+    }
+
+    a:focus, button:focus, input:focus, textarea:focus, select:focus, [tabindex]:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    button::-moz-focus-inner, input::-moz-focus-inner {
+        border: 0;
+        padding: 0;
+    }
+
+    *, *::before, *::after {
+        -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+    }
+    </style>
+    <style>
+/* === Carte du blog === */
+.blog-card {
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 30px;
+    background: var(--card);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    color: var(--text);
+}
+
+.blog-card h2 {
+    margin-bottom: 20px;
+    color: var(--text);
+}
+
+/* === Conteneur des groupes de champs === */
+.form-group-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* === Groupes individuels === */
+.form-group {
+    flex: 1 1 45%;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--card);
+    color: var(--text);
+}
+
+/* === Textarea spécifique === */
+.form-group textarea {
+    min-height: 100px;
+    padding: 12px;
+    font-size: 16px;
+    resize: none;
+    overflow: hidden;
+}
+
+/* === Image preview === */
+#image-preview {
+    display: block;
+    margin-top: 10px;
+    max-width: 100%;
+    height: 250px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+/* === Bouton submit === */
+button[type="submit"] {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    background-color: #4f46e5;
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #3730a3;
+}
+
+#id_content { transition: height 0.12s ease; }
+
+/* === Messages d'erreur === */
+.form-error {
+    color: #dc2626;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+/* === Responsive === */
+@media (max-width: 600px) {
+    .form-group {
+        flex: 1 1 100%;
+    }
+}
+
+/* === Textarea auto-redimension === */
+#id_content {
+    overflow: hidden;         /* pas de scrollbar */
+    min-height: 1.2em;        /* hauteur initiale = 1 ligne */font-family: 'FunnelSans';
+    line-height: 1.4em;       /* hauteur d'une ligne */
+    transition: height 0.15s ease; /* transition fluide */
+    resize: none;              /* interdit le redimensionnement manuel */
+}
+</style>
 </head>
+
 <body>
+
 <main>
    {% block content %}{% endblock content %} 
 </main>
+
+<!-- ================================
+     SCRIPT RIPPLE + CLICK SIMULATION
+================================ -->
+<script>
+(function(){
+    // Helper pour navigation programmatique
+    function triggerNavigation(el) {
+        const href = el.getAttribute && el.getAttribute('href');
+        if (!href) return;
+        setTimeout(() => {
+            if (el.target === '_blank') window.open(href, '_blank');
+            else window.location.href = href;
+        }, 140);
+    }
+
+    const events = ['mousedown', 'pointerdown', 'touchstart'];
+    let touchStartX = 0, touchStartY = 0;
+
+    function createRipple(el, clientX, clientY) {
+        const computed = getComputedStyle(el);
+        if (computed.position === 'static') el.style.position = 'relative';
+        if (computed.overflow !== 'hidden') el.style.overflow = 'hidden';
+
+        const rect = el.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height) * 2;
+
+        const ripple = document.createElement('span');
+        ripple.className = 'ripple';
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = (clientX - rect.left - size/2) + 'px';
+        ripple.style.top  = (clientY - rect.top  - size/2) + 'px';
+        el.appendChild(ripple);
+
+        ripple.addEventListener('animationend', () => {
+            if (ripple.parentNode) ripple.remove();
+        });
+        setTimeout(() => { if (ripple.parentNode) ripple.remove(); }, 900);
+    }
+
+    function handleDown(e) {
+        if (e.type === 'mousedown' && e.button !== 0) return;
+
+        const el = e.target.closest('a, button');
+        if (!el) return;
+
+        // NE PAS appliquer le ripple sur le bouton like
+        if (el.classList.contains('like-btn')) return;
+
+        if (e.type === 'touchstart') {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+
+            const touchEndHandler = function(ev) {
+                const dx = Math.abs(ev.changedTouches[0].clientX - touchStartX);
+                const dy = Math.abs(ev.changedTouches[0].clientY - touchStartY);
+                if (dx < 10 && dy < 10) createRipple(el, touchStartX, touchStartY);
+                el.removeEventListener('touchend', touchEndHandler);
+            };
+            el.addEventListener('touchend', touchEndHandler);
+            return;
+        }
+
+        // Ripple pour les autres boutons / liens
+        createRipple(el, e.clientX, e.clientY);
+
+        // Click simulé
+        if (el.tagName.toLowerCase() === 'a') {
+            triggerNavigation(el);
+        } else {
+            setTimeout(() => el.click(), 140);
+        }
+    }
+
+    events.forEach(evt => document.addEventListener(evt, handleDown, { passive: true }));
+})();
+</script>
+<style>
+/* Assure une transition douce (mettre dans ton CSS global si tu préfères) */
+.auto-resize-content {
+  transition: height 120ms ease;
+  overflow: hidden;
+  resize: none;
+}
+</style>
+
+<script>
+(function(){
+  'use strict';
+
+  function findTextarea() {
+    let ta = document.getElementById('id_content');
+    if (ta) return ta;
+    ta = document.querySelector('textarea[name="content"]');
+    if (ta) return ta;
+    ta = document.querySelector('.blog-photo-form textarea');
+    if (ta) return ta;
+    return document.querySelector('textarea');
+  }
+
+  function getNumericStyle(el, prop) {
+    return parseFloat(getComputedStyle(el)[prop]) || 0;
+  }
+
+  function oneLineHeight(textarea) {
+    const computed = getComputedStyle(textarea);
+    // calculer hauteur d'une ligne en px (fallback sur fontSize * 1.2)
+    const lh = parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.2;
+    const pad = getNumericStyle(textarea, 'paddingTop') + getNumericStyle(textarea, 'paddingBottom');
+    return Math.round(lh + pad);
+  }
+
+  function applyOneLine(textarea) {
+    const h = oneLineHeight(textarea);
+    textarea.style.height = h + 'px';
+  }
+
+  function applyAutoHeight(textarea, animate = true) {
+    if (!textarea) return;
+    // add helper class for transition
+    textarea.classList.add('auto-resize-content');
+
+    // reset to auto to compute scrollHeight reliably
+    textarea.style.height = 'auto';
+    const target = textarea.scrollHeight;
+
+    if (!animate) {
+      textarea.style.height = target + 'px';
+      return;
+    }
+
+    // Start from 1-line to allow smooth transition
+    applyOneLine(textarea);
+
+    // next frame -> set target height (browser will animate thanks to transition)
+    requestAnimationFrame(() => {
+      // force reflow
+      /* eslint-disable no-unused-expressions */
+      textarea.offsetHeight;
+      textarea.style.height = target + 'px';
+    });
+  }
+
+  function attach(textarea) {
+    if (!textarea) return false;
+    // ensure no vertical scrollbar
+    textarea.style.overflow = 'hidden';
+    textarea.style.resize = 'none';
+    // init state: if empty -> one line, else animate to content but without big jump
+    if (textarea.value && textarea.value.trim() !== '') {
+      // animate from one-line to content height
+      applyAutoHeight(textarea, true);
+    } else {
+      // keep a single-line height
+      applyOneLine(textarea);
+      // still attach listener so it will grow when typing
+    }
+
+    // listeners
+    const resizeNow = () => {
+      // when content changes, go to auto height instantly (no abrupt jump)
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    };
+
+    textarea.addEventListener('input', () => window.requestAnimationFrame(resizeNow), { passive: true });
+    textarea.addEventListener('paste', () => window.requestAnimationFrame(resizeNow));
+    textarea.addEventListener('drop', () => window.requestAnimationFrame(resizeNow));
+
+    return true;
+  }
+
+  function initOnce() {
+    const ta = findTextarea();
+    if (!ta) return false;
+    attach(ta);
+    return true;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (initOnce()) return;
+
+    // si le textarea est injecté plus tard (ex: forms renderés dynamiquement), observe le DOM
+    const mo = new MutationObserver((mutations, observer) => {
+      if (initOnce()) observer.disconnect();
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    // safety timeout: arrêter l'observer après 5s
+    setTimeout(() => mo.disconnect(), 5000);
+  });
+
+  // export function to re-init manually if needed
+  window.__initAutoResizeContent = initOnce;
+})();
+</script>
 </body>
 </html>

@@ -1,21 +1,135 @@
-/* Déclarer la police locale */
+
+/* === FunnelSans Family === */
+
+/* Regular */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Italic */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
+
+/* Light */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+}
+
+/* Light Italic */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-LightItalic.ttf') format('truetype');
+    font-weight: 300;
+    font-style: italic;
+}
+
+/* Medium */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+}
+
+/* Medium Italic */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-MediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+}
+
+/* SemiBold */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* SemiBold Italic */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-SemiBoldItalic.ttf') format('truetype');
+    font-weight: 600;
+    font-style: italic;
+}
+
+/* Bold */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* Bold Italic */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+}
+
+/* ExtraBold */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-ExtraBold.ttf') format('truetype');
+    font-weight: 800;
+    font-style: normal;
+}
+
+/* ExtraBold Italic */
+@font-face {
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-ExtraBoldItalic.ttf') format('truetype');
+    font-weight: 800;
+    font-style: italic;
+}
+
+/* Variable Font (poids variables) */
 @font-face {
     font-family: 'FunnelSans';
     src: url('../fonts/FunnelSans-VariableFont_wght.ttf') format('truetype');
-    font-weight: 100 900; /* variable font range */
+    font-weight: 100 900;
     font-style: normal;
 }
 
-
-/* Déclarer la police locale */
+/* Italic Variable Font */
 @font-face {
-    font-family: 'FunnelSans-Light';
-    src: url('../fonts/FunnelSans-Light.ttf') format('truetype');
-    font-weight: 100 900; /* variable font range */
+    font-family: 'FunnelSans';
+    src: url('../fonts/FunnelSans-Italic-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: italic;
+}
+
+/* === AlumniSansPinstripe === */
+
+/* Regular */
+@font-face {
+    font-family: 'AlumniSansPinstripe';
+    src: url('../fonts/AlumniSansPinstripe-Regular.ttf') format('truetype');
+    font-weight: 400;
     font-style: normal;
 }
 
-
+/* Italic */
+@font-face {
+    font-family: 'AlumniSansPinstripe';
+    src: url('../fonts/AlumniSansPinstripe-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+}
 
 
 
@@ -49,6 +163,7 @@
     line-height: 1.4;
   }
 
+/* Empêche le navigateur d’ajouter le highlight au tap sur mobile */
 
 
   /* Card contenant le formulaire */
@@ -121,7 +236,7 @@
     margin-top: 8px;
     padding: 11px 14px;
     border-radius: 12px;
-    border: none;
+    bord
     cursor: pointer;
     background: linear-gradient(90deg, var(--accent), #1d4ed8);
     color: var(--accent-contrast);
@@ -149,11 +264,16 @@
   }
 
   /* Accessibility: focus visible outline */
-  :focus{
-    outline: 3px solid rgba(37,99,235,0.12);
-    outline-offset: 2px;
-  }
+/* Supprime le focus global */
+:focus {
+  outline: none;
+}
 
+/* Ajoute un style focus uniquement au bouton submit */
+button[type="submit"]:focus {
+  outline: 3px solid rgba(37,99,235,0.12);
+  outline-offset: 2px;
+}
   /* Responsive: reduce paddings on small screens */
   @media (max-width:420px){
     .login-card{ padding: 18px; border-radius: 10px; }
@@ -610,20 +730,21 @@ input:-moz-autofill {
 
 /* --- Preview photo (modal) --- */
 .preview-user-info {
-    gap: 20px;
+    display: flex;
+    justify-content: center;
     padding: 16px;
-    justify-content: center; /* centre horizontalement */
+    gap: 0; /* plus de gap automatique */
 }
 
 .preview-photo img {
-    width: 104px; /* plus grande que user-info */
+    width: 104px;
     height: 104px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--accent);
     background: #ffffff88;
+   
 }
-
 
 
 /* --- Fenêtre modale --- */

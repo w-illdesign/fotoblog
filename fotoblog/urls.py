@@ -14,7 +14,8 @@ from blog.views import (
     UpdateProfilePhotoView,
     BlogAndPhotoUploadView,
     BlogDetailView,
-    ToggleLikeView,   # <-- important
+    ToggleLikeView, 
+    EditBlogView,  
 )
 
 urlpatterns = [
@@ -34,8 +35,12 @@ urlpatterns = [
     # Blog detail
     path('blog/<int:blog_id>/', BlogDetailView.as_view(), name='view_blog'),
 
-    # Toggle like (URL attend un param photo_id)
+    # Toggle like
     path('photo/<int:photo_id>/like/', ToggleLikeView.as_view(), name='toggle_like'),
+
+    # Edit blog
+    path('blog/<int:blog_id>/edit/', EditBlogView.as_view(), name='edit_blog'),
+
 ]
 
 if settings.DEBUG:

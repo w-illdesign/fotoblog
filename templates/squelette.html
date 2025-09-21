@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FotoBlog - Accueil</title>
+<style>
+  /* ===== Reset global ===== */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  body {
+    background-color: #0F172A;
+    color: #F8FAFC;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 400px;
+    width: 100%;
+  }
+
+  /* ===== Carte utilisateur ===== */
+  .user-card {
+    background-color: #1E293B;
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+  }
+
+  .user-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .user-card img.profile {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #3B82F6;
+    object-fit: cover;
+    margin-bottom: 12px;
+  }
+
+  .user-card h2 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+
+  .user-card p {
+    color: #94A3B8;
+    font-size: 14px;
+  }
+
+  /* ===== Boutons principaux ===== */
+  .btn-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-create {
+    background-color: #16A34A;
+    color: white;
+  }
+
+  .btn-create:hover {
+    background-color: #15803D;
+  }
+
+  .btn-photo {
+    background-color: #3B82F6;
+    color: white;
+  }
+
+  .btn-photo:hover {
+    background-color: #1E40AF;
+  }
+
+  /* ===== Carte photo ===== */
+  .photo-card {
+    background-color: #1E293B;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .photo-card:hover {
+    transform: scale(1.02);
+  }
+
+  .photo-card img {
+    width: 100%;
+    display: block;
+    border-radius: 16px;
+    object-fit: cover;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Carte utilisateur -->
+  <div class="user-card">
+    <img class="profile" src="profile.jpg" alt="Photo de profil">
+    <h2>Bonjour Danv</h2>
+    <p>Creator</p>
+  </div>
+
+  <!-- Boutons -->
+  <div class="btn-container">
+    <button class="btn btn-create">Créer un billet</button>
+    <button class="btn btn-photo">Une photo</button>
+  </div>
+
+  <!-- Carte photo -->
+  <div class="photo-card">
+    <img src="photo_preview.jpg" alt="Photo du billet">
+  </div>
+
+</div>
+
+</body>
+</html>
