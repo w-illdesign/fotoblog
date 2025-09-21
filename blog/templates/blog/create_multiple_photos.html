@@ -1,0 +1,44 @@
+{# blog/templates/blog/create_multiple_photos.html #}
+{% extends 'base.html' %}
+{% block content %}
+<div class="login-card">
+    <h1>FotoBlog</h1>
+    <p class="lead">Télécharge plusieurs photos</p>
+
+    {% if formset.non_form_errors %}
+    <div class="errors_messages">
+        <strong>Erreur</strong>
+        <ul>
+            {% for error in formset.non_form_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        {{ formset.management_form }}
+
+        {% for form in formset %}
+            <div class="form-group">
+                {{ form.image }}
+                <label for="{{ form.image.id_for_label }}">Image {{ forloop.counter }}</label>
+            </div>
+
+            <div class="form-group">
+                {{ form.caption }}
+                <label for="{{ form.caption.id_for_label }}">Légende {{ forloop.counter }}</label>
+            </div>
+
+            <hr>
+        {% endfor %}
+
+        <button type="submit">Publier</button>
+    </form>
+
+    <p class="footnote">
+        <a href="{% url 'home' %}">Retour à l'accueil</a>
+    </p>
+</div>
+{% endblock content %}

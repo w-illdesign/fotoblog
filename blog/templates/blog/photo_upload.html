@@ -34,8 +34,11 @@
         <button type="submit">Publier</button>
     </form>
 
+    <hr>
+
     <p class="footnote">
-        <a href="{% url 'home' %}">Retour à l'accueil</a>
+        <a href="{% url 'home' %}">Retour à l'accueil</a> |
+        <a href="{% url 'create_multiple_photos' %}">Uploader plusieurs photos</a>
     </p>
 </div>
 {% endblock content %}

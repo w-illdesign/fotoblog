@@ -16,6 +16,7 @@ from blog.views import (
     BlogDetailView,
     ToggleLikeView, 
     EditBlogView,  
+    CreateMultiplePhotosView,
 )
 
 urlpatterns = [
@@ -31,6 +32,7 @@ urlpatterns = [
     path('photo/upload/', PhotoUploadView.as_view(), name='photo_upload'),
     path('update-profile-photo/', UpdateProfilePhotoView.as_view(), name='update_profile_photo'),
     path('create/', BlogAndPhotoUploadView.as_view(), name='create_blog_post'),
+    path("photos/multiple/", CreateMultiplePhotosView.as_view(), name="create_multiple_photos"),
 
     # Blog detail
     path('blog/<int:blog_id>/', BlogDetailView.as_view(), name='view_blog'),
@@ -42,6 +44,7 @@ urlpatterns = [
     path('blog/<int:blog_id>/edit/', EditBlogView.as_view(), name='edit_blog'),
 
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,9 +1,9 @@
-# blog/models.py
 from django.conf import settings
 from django.db import models
+from .utils import user_directory_path  # <-- import de notre fonction
 
 class Photo(models.Model):
-    image = models.ImageField()
+    image = models.ImageField(upload_to=user_directory_path)  # <-- utiliser la fonction ici
     caption = models.CharField(max_length=128, blank=True)
     uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -12,7 +12,7 @@ class Photo(models.Model):
         return f"{self.caption[:20]}"
 
     def likes_count(self):
-        return self.likes.count()  # nombre de likes sur cette photo
+        return self.likes.count()
 
 
 class Like(models.Model):
@@ -21,7 +21,7 @@ class Like(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('photo', 'user')  # un utilisateur ne peut liker qu'une fois
+        unique_together = ('photo', 'user')
 
     def __str__(self):
         return f"{self.user.username} aime {self.photo.caption[:20]}"

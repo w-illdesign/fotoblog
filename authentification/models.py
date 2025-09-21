@@ -1,6 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from blog.utils import user_directory_path  # <-- importer utils ici
 
 class User(AbstractUser):
     CREATOR = "Creator"
@@ -12,7 +12,7 @@ class User(AbstractUser):
     )
 
     profile_photo = models.ImageField(
-        upload_to="profiles/",  # dossier où les images seront stockées
+        upload_to=user_directory_path,  # <-- ici
         verbose_name="Photo de profil",
         blank=True,
         null=True

@@ -1,0 +1,96 @@
+Mes commandes personnalisées
+****************************
+
+0. fblog
+Se deplacer dans le projet fotoblog
+
+1. fblogrun
+Active l'environnement et lance le serveur pour Fotoblog.
+
+2. bclear
+Réinitialise la base de données Fotoblog et supprime les migrations.
+
+3. uclearall
+Supprime tous les utilisateurs dans Fotoblog.
+
+4. oclear
+Supprime toutes les données sauf les utilisateurs dans Fotoblog.
+
+5. uclear
+Supprime toutes les données sauf les super utilisateurs dans Fotoblog.
+
+6. pmig
+Fait les migrations pour Fotoblog et applique les changements à la base de données.
+
+7. runs
+Lance le serveur Django pour Fotoblog sur 0.0.0.0:8000.
+   
+   
+8. csuperuser
+Crée un super utilisateur username 'will' email 'willdesign@gmail.com' mot de passe 'willdesign'
+
+9. cusers
+Crée 10 utilisateurs
+    
+    
+    
+    
+# ======================================================
+# Aller automatiquement dans salvacode à l'ouverture
+# ======================================================
+cd ~/storage/shared/Termux/salvacode
+
+# ======================================================
+# Commande Git rapide pour sauvegarder et pousser les changements
+# ======================================================
+alias save='git add . && git commit -m "Mise à jour du site" && git push'
+
+# ======================================================
+# Alias universel pour créer automatiquement le super utilisateur
+# ======================================================
+alias csuperuser="source env/bin/activate && python manage.py shell -c \"
+from authentification.models import User
+if not User.objects.filter(is_superuser=True).exists():
+    User.objects.create_superuser(username='will', email='willdesign@gmail.com', password='willdesign')
+    print('✅ Superuser créé !')
+else:
+    print('✅ Superuser déjà présent.')
+\""
+
+# ======================================================
+# Alias universel pour créer automatiquement 20 utilisateurs normaux
+# ======================================================
+alias cusers="source env/bin/activate && python manage.py shell -c \"
+from authentification.models import User
+for i in range(1, 21):
+    username = f'user{i:02d}'
+    email = f'user{i:02d}@example.com'
+    if not User.objects.filter(username=username).exists():
+        User.objects.create_user(username=username, email=email, password='motdepasse123')
+        print(f'Utilisateur {username} créé !')
+    else:
+        print(f'Utilisateur {username} déjà présent.')
+\""
+
+# ======================================================
+# ALIAS POUR LE PROJET KODEKA
+# ======================================================
+alias kodeka="cd ~ && source ~/env/bin/activate && cd ~/storage/shared/Termux/Kodeka"
+alias mig="cd ~/storage/shared/Termux/Kodeka && python manage.py makemigrations ItemsApp && python manage.py migrate"
+alias run="cd ~/storage/shared/Termux/Kodeka && python manage.py runserver"
+alias kodeka_clean="rm -f ~/storage/shared/Termux/Kodeka/db.sqlite3 && find ~/storage/shared/Termux/Kodeka/ItemsApp/migrations/ -type f -not -name '__init__.py' -delete"
+alias kodeka_superuser="cd ~/storage/shared/Termux/Kodeka && python manage.py shell -c \"from django.contrib.auth import get_user_model; U=get_user_model(); U.objects.filter(email='admin@example.com').exists() or U.objects.create_superuser(nom_complet='Admin', numero='+243900000000', email='admin@example.com', password='motdepasse123'); print('✅ Superuser vérifié/créé !')\""
+alias kodeka_all="kodeka && kodeka_clean && mig && kodeka_superuser"
+
+# ======================================================
+# ALIAS POUR LE PROJET FOTOBLOG
+# ======================================================
+alias fblog="cd ~ && cd fotoblog-project && source ~/env/bin/activate && cd fotoblog"
+alias fblogrun="cd ~ && cd fotoblog-project && source ~/env/bin/activate && cd fotoblog && python manage.py runserver"
+
+alias bclear="read -p 'ATTENTION: Tout sera supprimé ! Confirmer (y/n) ? ' CONFIRM; if [ \"\$CONFIRM\" = \"y\" ]; then rm db.sqlite3 && rm -rf blog/migrations && rm -rf authentification/migrations && python manage.py makemigrations && python manage.py migrate; else echo 'Annulé'; fi"
+alias uclearall="read -p 'Supprimer tous les utilisateurs ? (y/n) ' CONFIRM; if [ \"\$CONFIRM\" = \"y\" ]; then python manage.py shell -c 'from authentification.models import User; User.objects.all().delete()'; else echo 'Annulé'; fi"
+alias oclear="read -p 'Supprimer tout sauf les utilisateurs ? (y/n) ' CONFIRM; if [ \"\$CONFIRM\" = \"y\" ]; then python manage.py shell -c 'from django.apps import apps; models = apps.get_models(); [model.objects.all().delete() for model in models if model.__name__ != \"User\"]'; else echo 'Annulé'; fi"
+alias uclear="read -p 'Supprimer tout sauf les super utilisateurs ? (y/n) ' CONFIRM; if [ \"\$CONFIRM\" = \"y\" ]; then python manage.py shell -c 'from django.apps import apps; from authentification.models import User; users = User.objects.filter(is_superuser=True); for model in apps.get_models(): if model.__name__ == \"User\": model.objects.exclude(pk__in=[u.pk for u in users]).delete(); else: model.objects.all().delete()'; else echo 'Annulé'; fi"
+alias pmig="python manage.py makemigrations && python manage.py migrate"
+alias runs="python manage.py runserver 0.0.0.0:8000"

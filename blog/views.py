@@ -69,6 +69,53 @@ class PhotoUploadView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
+
+
+        
+        
+# blog/views.py
+from django.views import View
+from django.shortcuts import render, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.forms import modelformset_factory
+
+from .models import Photo
+from .forms import PhotoForm
+
+
+class CreateMultiplePhotosView(LoginRequiredMixin, View):
+    template_name = "blog/create_multiple_photos.html"
+    success_url = "home"  # nom de l’url vers laquelle on redirige
+
+    def get(self, request, *args, **kwargs):
+        PhotoFormSet = modelformset_factory(
+            Photo,
+            form=PhotoForm,
+            extra=5,
+            can_delete=False
+        )
+        formset = PhotoFormSet(queryset=Photo.objects.none())
+        return render(request, self.template_name, {"formset": formset})
+
+    def post(self, request, *args, **kwargs):
+        PhotoFormSet = modelformset_factory(
+            Photo,
+            form=PhotoForm,
+            extra=5,
+            can_delete=False
+        )
+        formset = PhotoFormSet(request.POST, request.FILES, queryset=Photo.objects.none())
+
+        if formset.is_valid():
+            for form in formset:
+                if form.cleaned_data:  # éviter d’enregistrer les formulaires vides
+                    photo = form.save(commit=False)
+                    photo.uploader = request.user
+                    photo.save()
+            return redirect(self.success_url)
+
+        return render(request, self.template_name, {"formset": formset})    
+
 # ======================================================
 # Mise à jour photo de profil
 # ======================================================
@@ -227,3 +274,6 @@ class EditBlogView(LoginRequiredMixin, View):
             "blog": blog,
         }
         return render(request, "blog/edit_blog.html", context)
+        
+        
+    
