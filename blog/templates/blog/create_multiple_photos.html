@@ -1,4 +1,3 @@
-{# blog/templates/blog/create_multiple_photos.html #}
 {% extends 'base.html' %}
 {% block content %}
 <div class="login-card">
@@ -23,12 +22,22 @@
         {% for form in formset %}
             <div class="form-group">
                 {{ form.image }}
+                
+                
+                
                 <label for="{{ form.image.id_for_label }}">Image {{ forloop.counter }}</label>
             </div>
 
             <div class="form-group">
                 {{ form.caption }}
+                
                 <label for="{{ form.caption.id_for_label }}">Légende {{ forloop.counter }}</label>
+            </div>
+
+            <!-- Nouveau champ Tags -->
+            <div class="form-group">
+                <input type="text" name="tags_{{ forloop.counter0 }}" placeholder="Tags séparés par des virgules">
+                <label>Tags {{ forloop.counter }}</label>
             </div>
 
             <hr>

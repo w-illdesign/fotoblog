@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-v&gi^ouymbf)$j(g_36r6elf48n3#94e%*jk=uft-!ozqsb-qv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -38,8 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'authentification',
-    'blog'
+     'authentification.apps.AuthentificationConfig',
+    'blog',
+    'taggit',  # <-- ajouté pour gérer les tags
 ]
 
 
@@ -66,10 +67,14 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'blog.context_processors.user_stats',
             ],
         },
     },
 ]
+
+
+
 
 WSGI_APPLICATION = 'fotoblog.wsgi.application'
 

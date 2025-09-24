@@ -42,6 +42,11 @@
                 <div class="form-error">{{ error }}</div>
             {% endfor %}
         </div>
+        <!-- Champ Tags -->
+        <div class="form-group" style="flex:1 1 100%;">
+            <label for="id_tags">Tags (séparés par des virgules)</label>
+            <input type="text" name="tags" id="id_tags" value="">
+        </div>
     </div>
 
     {% for error in blog_form.non_field_errors %}

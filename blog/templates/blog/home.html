@@ -3,569 +3,160 @@
 {% load custom_tags %}
 {% load static %}
 {% load time_blog %}
+{% block header_title %}
+FotoBlog
+{% endblock %}
 
 
-<div class="login-card" role="main" aria-labelledby="site-title">
-    <h1 id="site-title">FotoBlog</h1>
-    
-    <div class="preview-user-info">
-          <div class="profile-photo preview-photo">
-            {% if user.profile_photo %}
-                <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}">
-            {% else %}
-                <img src="{% static 'icons/user-solid-full.svg' %}" alt="Photo par défaut">
-            {% endif %}
-          </div>
-        </div>
-        
-    <p class="lead">Bonjour {{ user.username }}</p>
 
+<!-- CSS spécifique à la page -->
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+
+
+<div class="button-container">
     {% if user.is_authenticated %}
-    <div class="user-info">
-        <div class="profile-photo">
-            {% if user.profile_photo %}
-                <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}">
-            {% else %}
-                <img src="{% static 'icons/user-solid-full.svg' %}" alt="Photo par défaut">
-            {% endif %}
-        </div>
-        <div class="details">
-            <p><strong> {{ user.username }} </strong></p>
-            
-            <p>{{ user.role }}</p>
-        </div>
-    </div>
+        {% if perms.blog.add_blog %}
+            <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
+            <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
+        {% else %}
+            <a href="{% url 'follow_users' %}" class="btn-create">Suivre des créateurs</a>
+            <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
+        {% endif %}
+    {% else %}
+        <a href="{% url 'login' %}" class="btn-create">Se connecter</a>
+        <a href="{% url 'signup' %}" class="btn-upload">S'inscrire</a>
     {% endif %}
 </div>
 
+<div id="feed-container" class="photo-gallery" data-initial-offset="{{ photos|length }}">
+    {% for photo in photos %}
+        {% with photo.blog_set.all|first as related_blog %}
+        <div class="photo-card-wrapper" data-photo-id="{{ photo.id }}">
+            <div class="photo-card">
+                <div class="photo-image-container">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
+                    <div class="user-info-overlay">
+                        <div class="profile-photo small">
+                            {% if photo.uploader.profile_photo %}
+                                <img src="{{ photo.uploader.profile_photo.url }}" alt="{{ photo.uploader.username }}">
+                            {% else %}
+                                <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
+                            {% endif %}
+                        </div>
+                        <div class="details small">
+    <p class="uploader-line">
+        <!-- Lien vers le profil utilisateur -->
+        <a href="{% url 'user-profile' username=photo.uploader.username %}" class="profile-link">
+            {{ photo.uploader.username }}
+        </a>
 
-
-<!-- Bouton pour aller à la page uploader -->
-
-
-{% if user.is_authenticated %}
-<div class="button-container">
-    <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
-    <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
-</div>
-{% endif %}
-
-<!-- Galerie -->
-{% for photo in photos %}
-  {% with photo.blog_set.all|first as related_blog %}
-    <div class="photo-card-wrapper">
-     
-
-      <div class="photo-card" data-photo-id="{{ photo.id }}">
-          
-        <!-- Image -->
-        <div class="photo-image-container" style="position: relative;">
-    <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
-
-    <!-- User info en bas à gauche -->
-    <div class="user-info" style="position: absolute; bottom: 8px; left: 8px; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 6px 10px; border-radius: 12px; color: white;">
-        <div class="profile-photo" style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden;">
-            {% if photo.uploader.profile_photo %}
-                <img src="{{ photo.uploader.profile_photo.url }}" alt="{{ photo.uploader.username }}" style="width:100%; height:100%; object-fit: cover;">
-            {% else %}
-                <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut" style="width:100%; height:100%; object-fit: cover;">
-            {% endif %}
-        </div>
-        <div class="details" style="display: flex; flex-direction: column; font-size: 0.85rem;">
-    <p style="margin: 0; font-weight: 500; display: flex; align-items: center; gap: 6px;">
-       {{ photo.uploader.username }}
-{% if photo.uploader.role == 'Creator' %}
-    
-    
-   
-<svg class="creator-badge" xmlns="http://www.w3.org/2000/svg"  
-viewBox="0 0 24 24" width="18" height="18" role="img" aria-label="Creator badge">
-
-  <title>Creator</title>  
-  <desc>Verified creator badge — blue circle with white check</desc>    <defs>  
-    <!-- joli dégradé bleu -->  
-    <linearGradient id="gCreator" x1="0" x2="1" y1="0" y2="1">  
-      <stop offset="0" stop-color="#3AB0FF"/>  
-      <stop offset="1" stop-color="#1DA1F2"/>  
-    </linearGradient>  <!-- ombre douce -->  
-<filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">  
-  <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#0b76c9" flood-opacity="0.35"/>  
-</filter>
-
-  </defs>    <!-- cercle de fond avec dégradé + ombre -->    <circle cx="12" cy="12" r="11.2" fill="url(#gCreator)" filter="url(#shadow)" />    <!-- légère bordure extérieure (subtile) -->    <circle cx="12" cy="12" r="11.2" fill="none" stroke="#0b7bd6" stroke-opacity="0.14" stroke-width="0.6"/>    <!-- check blanc avec coins arrondis -->  <path d="M8.6 12.2 L11 14.6 L15.6 9.8"  
-fill="none"  
-stroke="#fff"  
-stroke-width="2.2"  
-stroke-linecap="round"  
-stroke-linejoin="round"/>
-</svg>
-
-
-    <style>
-        /* === Badge Créateur SVG === */
-.creator-badge {
-    width: 12px;       /* largeur du badge */
-    height: 12px;      /* hauteur du badge */
-    margin-left: 2px;  /* espace entre le nom et le badge */
-    vertical-align: middle; /* aligne verticalement avec le texte */
-    fill: #ef4444;     /* couleur rouge */
-    display: inline-block;
-}
-    </style>
-{% endif %}
+        {% if photo.uploader.role == 'Creator' %}
+            <svg class="creator-badge" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Creator badge">
+                <defs>
+                    <linearGradient id="gCreator" x1="0" x2="1" y1="0" y2="1">
+                        <stop offset="0" stop-color="#3AB0FF"/>
+                        <stop offset="1" stop-color="#1DA1F2"/>
+                    </linearGradient>
+                    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                        <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#0b76c9" flood-opacity="0.35"/>
+                    </filter>
+                </defs>
+                <circle cx="12" cy="12" r="11.2" fill="url(#gCreator)" filter="url(#shadow)" />
+                <path d="M8.6 12.2 L11 14.6 L15.6 9.8" fill="none" stroke="#fff" stroke-width="2.2"/>
+            </svg>
+        {% endif %}
     </p>
-    <div class="date" style="font-size: 0.75rem;">{{ photo.date_created|facebook_time }}</div>
-</div>
-    </div>
-</div>
- 
-        <!-- Infos sur la photo -->
-        <div class="photo-info">
-            <p class="caption">
-            {% if related_blog %}
-   <a href="{% url 'view_blog' related_blog.id %}" class="photo-card-link"> {{ related_blog.title }} <span class="link-lire">... Lire</span></a>
-{% else %}
-    {{ photo.caption }}
-{% endif %}
-          </p>
-     
-        <!-- Infos utilisateur -->
-        
+    <div class="date small">{{ photo.date_created|facebook_time }}</div>
+</div></div>
+                </div>
+                <div class="photo-info">
+                    <p class="caption">
+                        {% if related_blog %}
+                            <a href="{% url 'view_blog' related_blog.id %}" class="photo-card-link">
+                                {{ related_blog.title }} <span class="link-lire">... Lire</span>
+                            </a>
+                        {% else %}
+                            {{ photo.caption }}
+                        {% endif %}
+                    </p>
+                </div>
+
+                <div class="photo-actions">
+                    <div class="action comments">
+                        <button class="comment-btn" title="Commenter">
+                            <span class="comments-count">2K</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="action comments">
+                        <button class="comment-btn" title="Partager">
+                            <span class="comments-count">5</span>
+                            
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            
+                        </button>
+                    </div>
+
+                    <div class="action likes">
+                        <span class="likes-count">{{ photo.likes.count }}</span>
+                        <button class="like-btn {% if photo_likes|dict_get:photo.id %}liked{% endif %}" title="J'aime">
+                            {% if photo_likes|dict_get:photo.id %}
+                                <svg class="heart-svg filled" xmlns="http://www.w3.org/2000/svg" fill="red" viewBox="0 0 24 24">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                            {% else %}
+                                <svg class="heart-svg empty" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-
-
-<!-- Zone actions photo -->
-<div class="photo-actions" style="display: flex; justify-content: space-around; align-items: center;">
-  
-  <!-- Bouton Commentaires -->
-  <div class="comments">
-    <button class="comment-btn">
-      <span class="comments-count">2K</span>
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" 
-           stroke-width="2" viewBox="0 0 24 24">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-      </svg>
-    </button>
-  </div>
-
-  <!-- Bouton Republier / Partager -->
-  <div class="comments">
-    <button class="comment-btn">
-     
-     
-  <span class="comments-count">5</span>   <!-- Bouton Republier -->
-
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="svg">
-  <path fill="currentColor" d="M262.8 65.8C271.8 62.1 282.1 64.1 289 71L345 127C354.4 136.4 354.4 151.6 345 160.9L289 216.9C282.1 223.8 271.8 225.8 262.8 222.1C253.8 218.4 248 209.7 248 200L248 176L224 176C206.3 176 192 190.3 192 208L192 422.7C220.3 435 240 463.2 240 496C240 540.2 204.2 576 160 576C115.8 576 80 540.2 80 496C80 463.2 99.7 435 128 422.7L128 208C128 155 171 112 224 112L248 112L248 88C248 78.3 253.8 69.5 262.8 65.8zM456 144C456 157.3 466.7 168 480 168C493.3 168 504 157.3 504 144C504 130.7 493.3 120 480 120C466.7 120 456 130.7 456 144zM448 217.3C419.7 205 400 176.8 400 144C400 99.8 435.8 64 480 64C524.2 64 560 99.8 560 144C560 176.8 540.3 205 512 217.3L512 432C512 485 469 528 416 528L392 528L392 552C392 561.7 386.2 570.5 377.2 574.2C368.2 577.9 357.9 575.9 351 569L295 513C285.6 503.6 285.6 488.4 295 479.1L351 423.1C357.9 416.2 368.2 414.2 377.2 417.9C386.2 421.6 392 430.3 392 440L392 464L416 464C433.7 464 448 449.7 448 432L448 217.3zM136 496C136 509.3 146.7 520 160 520C173.3 520 184 509.3 184 496C184 482.7 173.3 472 160 472C146.7 472 136 482.7 136 496z"/>
-</svg>
-
-
-    </button>
-  </div>
-
-  <!-- Bouton Likes -->
-  <div class="likes">
-    <span class="likes-count">{{ photo.likes.count }}</span>
-    <button class="like-btn {% if photo_likes|dict_get:photo.id %}liked{% endif %}">
-      {% if photo_likes|dict_get:photo.id %}
-        <!-- Cœur rempli -->
-        <svg xmlns="http://www.w3.org/2000/svg" fill="red" viewBox="0 0 24 24">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
-                   2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09
-                   C13.09 3.81 14.76 3 16.5 3
-                   19.58 3 22 5.42 22 8.5c0 3.78-3.4 
-                   6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-      {% else %}
-        <!-- Cœur vide -->
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" 
-             stroke="white" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 
-                   2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 
-                   4.5 2.09C13.09 3.81 14.76 3 16.5 3
-                   19.58 3 22 5.42 22 8.5c0 3.78-3.4 
-                   6.86-8.55 11.54L12 21.35z"/>
-        </svg>
-      {% endif %}
-    </button>
-  </div>
-
+        {% endwith %}
+    {% endfor %}
 </div>
-      
 
- 
-    </div>
-  {% endwith %}
-{% endfor %}
+<div id="feed-loader" class="feed-loader" aria-hidden="true" style="display:none;"></div>
 
-<style>
-    /* === Galerie générale === */
-.gallery-container {
-  max-width: 460px;
-  margin: 0 auto;
-  padding: 20px;
-  background: var(--bg);
-}
-
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
-  align-items: stretch;
-}
-
-.photo-card-link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* === Carte photo === */
-.photo-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  background: var(--card);
-  border-radius: var(--radius);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: transform 0.18s cubic-bezier(.2,.9,.2,1), box-shadow 0.18s ease;
-  cursor: pointer;
-  margin-bottom: 12px;
-  margin-top: 6px;
-}
-
-.photo-card-link:hover .photo-card,
-.photo-card-link:focus .photo-card {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(16,24,40,0.12);
-}
-
-.photo-card-link:focus-visible {
-  outline: none;
-}
-
-.photo-card-link:focus-visible .photo-card {
-  box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
-  transform: translateY(-4px);
-}
-
-/* === Image === */
-.photo-image-container {
-  width: 100%;
-  max-height: 370px;       /* limite maximale de la hauteur */
-  overflow: hidden;        /* coupe l'image si elle dépasse 300px */
-  border-radius: var(--radius); /* coins arrondis en haut */
-
-  display: flex;
-  justify-content: center; /* centre horizontalement */
-  align-items: center;     /* centre verticalement */
-}
-
-.photo-image-container img {
-  width: 100%;
-  height: auto;
-  max-height: none;        /* pas de limitation supplémentaire */
-  object-fit: cover;       /* remplissage du conteneur sans déformation */
-  object-position: center; /* centre l'image si elle est coupée */
-  display: block;
-}
-
-/* === Infos texte === */
-.photo-info {
-margin-left: 12px;
-  padding-top: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  
-}
-
-.caption {
-  margin: 0;
-  color: var(--text);
-  font-weight: 600;
-  line-height: 1.4;   /* un peu plus d’espace entre les lignes */
-  white-space: normal; /* autorise les retours à la ligne */
-  overflow-wrap: break-word; /* casse les mots trop longs si nécessaire */
-}
-
-.date, .link-lire {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-  
-}
-
-/* === Bloc utilisateur (profil uploader) === */
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px 12px;
-}
-
-.user-info .profile-photo {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.user-info .profile-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.user-info .details p {
-  margin: 0;
-  font-weight: 500;
-  color: var(--text);
-}
-/* === Zone actions photo (comments + likes) === */
-.photo-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 12px 34px 24px 34px;
-  gap: 16px;
-}
-
-
-/* === Zone actions photo (commentaires + likes) === */
-.photo-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 12px 34px 24px 34px;
-  gap: 16px;
-}
-
-/* === Bouton Commentaires === */
-.comments .comment-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  color: var(--text);
-  transition: transform 0.12s ease;
-}
-
-.comments .comment-btn svg {
-  width: 28px;
-  height: 28px;
-  stroke: var(--text);
-}
-
-.comments .comment-btn:hover {
-  transform: scale(1.05);
-}
-
-.comments-count {
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-.likes-count{
-    
-}
-/* === Likes === */
-.likes {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    overflow: visible; /* assure que l'effet scale n'est pas masqué */
-}
-
-.like-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    transition: transform 0.20s ease;
-    overflow: visible; /* clé pour l'effet scale */
-    z-index: 2;        /* au-dessus des autres éléments */
-}
-
-.like-btn svg {
-    transition: transform 0.20s ease, fill 0.2s ease, stroke 0.2s ease;
-    color: #9ca3af;
-}
-
-.like-btn:hover svg {
-    transform: scale(1.25);
-}
-
-.like-btn.liked svg {
-    fill: #ef4444;
-    stroke: #ef4444;
-}
-
-/* Responsive */
-@media (max-width: 420px) {
-  .likes-count, .comments-count {
-    font-size: 0.85rem;
-  }
-  .like-btn svg, .comments .comment-btn svg {
-    width: 30px;
-    height: 30px;
-  }
-  .comments .comment-btn {
-    font-size: 0.8rem;
-  }
-}
-
-
-
-
-
-</style>
-
-
-<!-- Audio invisible -->
-<audio id="likeSound" src="{% static 'audio/audiocutter_facebook-like-sound-effect2.mp3' %}"" preload="auto" style="display:none;"></audio>
-
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    const heartFilled = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="red" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
-                     4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 
-                     3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 
-                     11.54L12 21.35z"/>
-        </svg>
-    `;
-    const heartEmpty = `
-        <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 
-                     4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 
-                     3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 
-                     11.54L12 21.35z"/>
-        </svg>
-    `;
-
-    // Récupérer l'audio invisible
-    const likeSound = document.getElementById('likeSound');
-
-    document.querySelectorAll('.like-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            // Jouer le son
-            likeSound.currentTime = 0;
-            likeSound.play();
-
-            const card = btn.closest('.photo-card');
-            const photoId = card.dataset.photoId;
-
-            fetch(`/photo/${photoId}/like/`, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": "{{ csrf_token }}",
-                },
-            })
-            .then(res => res.json())
-            .then(data => {
-                btn.innerHTML = data.liked ? heartFilled : heartEmpty;
-                card.querySelector('.likes-count').textContent = data.likes_count;
-                btn.classList.toggle('liked', data.liked);
-            });
-        });
-    });
-});
-</script>
-
-<!-- Déconnexion -->
-<div style="text-align:center; margin: 20px 0;">
-{% if user.is_authenticated %}
-  <a href="{% url 'logout' %}" class="btn-deconnexion">
-      Se déconnecter
-      <img src="{% static 'icons/right-to-bracket-solid-full.svg' %}" alt="Déconnexion">
-  </a>
-{% endif %}    
-</div>
+<audio id="likeSound" src="{% static 'audio/audiocutter_facebook-like-sound-effect2.mp3' %}" preload="auto" style="display:none;"></audio>
 
 {% if user.is_authenticated and not user.profile_photo %}
-<!-- Modal ajout photo profil -->
 <div id="profileModal" class="modal">
   <div class="modal-content">
     <h2>Vous n'avez pas de photo de profil</h2>
-    
     <form method="post" enctype="multipart/form-data" action="{% url 'update_profile_photo' %}">
       {% csrf_token %}
-      <input type="file" name="profile_photo" id="profilePhotoInput" accept="image/*" required style="display:none">
-      
-      <div id="previewContainer" style="margin:5px 0; display:flex; justify-content:center;">
+      <<input type="file" name="profile_photo" id="profilePhotoInput" accept="image/*" required style="display:none">
+
+      <div id="previewContainer" class="preview-container">
         <div class="preview-user-info">
           <div class="profile-photo preview-photo">
-            <img id="currentPhoto" src="{% static 'icons/user-solid-full.svg' %}" alt="Photo par défaut">
-            <img id="previewImage" src="#" alt="Aperçu" style="display:none;">
+            <img id="currentPhoto" src="{% static 'icons/default_profile.png' %}" alt="Photo par défaut">
+            <img id="previewImage" src="#" alt="Aperçu" class="hidden">
           </div>
         </div>
       </div>
-  
-      <button type="button" id="importBtn">Importer</button>
-      <button type="submit" style="margin-top:12px;">Enregistrer</button>
+
+      <div class="modal-actions">
+        <button type="button" id="importBtn" class="btn">Importer</button>
+        <button type="submit" class="btn primary">Enregistrer</button>
+      </div>
     </form>
   </div>
 </div>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const fileInput = document.getElementById("profilePhotoInput");
-  const importBtn = document.getElementById("importBtn");
-  const previewImage = document.getElementById("previewImage");
-  const currentPhoto = document.getElementById("currentPhoto");
-  const modal = document.getElementById("profileModal");
-
-  importBtn.addEventListener("click", () => fileInput.click());
-
-  fileInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if(file){
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        previewImage.src = event.target.result;
-        previewImage.style.display = "block";
-        currentPhoto.style.display = "none";
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  // Ouvrir la modal et bloquer le scroll
-  if(modal){
-    modal.style.display = "flex";
-    document.body.style.overflow = "hidden"; // bloque le scroll
-  }
-
-  // Si tu as un bouton de fermeture
-  const closeBtn = modal.querySelector(".closeModal");
-  if(closeBtn){
-    closeBtn.addEventListener("click", () => {
-      modal.style.display = "none";
-      document.body.style.overflow = ""; // réactive le scroll
-    });
-  }
-
-  // Fermer modal si clic en dehors du contenu
-  modal.addEventListener("click", (e) => {
-    if(e.target === modal){
-      modal.style.display = "none";
-      document.body.style.overflow = "";
-    }
-  });
-});
-</script>
 {% endif %}
 
+<!-- Styles internes pour l'overlay et badge créateur -->
+<style>
 
+</style>
+
+<!-- JS spécifique à la page -->
+<script src="{% static 'js/home.js' %}" defer></script>
 
 {% endblock content %}

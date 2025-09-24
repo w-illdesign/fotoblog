@@ -29,10 +29,12 @@ Lance le serveur Django pour Fotoblog sur 0.0.0.0:8000.
 8. csuperuser
 Crée un super utilisateur username 'will' email 'willdesign@gmail.com' mot de passe 'willdesign'
 
-9. cusers
+9. c10users
 Crée 10 utilisateurs
     
     
+help:
+
     
     
 # ======================================================
@@ -60,7 +62,7 @@ else:
 # ======================================================
 # Alias universel pour créer automatiquement 20 utilisateurs normaux
 # ======================================================
-alias cusers="source env/bin/activate && python manage.py shell -c \"
+alias cusers="python manage.py shell -c \"
 from authentification.models import User
 for i in range(1, 21):
     username = f'user{i:02d}'
@@ -88,7 +90,21 @@ alias kodeka_all="kodeka && kodeka_clean && mig && kodeka_superuser"
 alias fblog="cd ~ && cd fotoblog-project && source ~/env/bin/activate && cd fotoblog"
 alias fblogrun="cd ~ && cd fotoblog-project && source ~/env/bin/activate && cd fotoblog && python manage.py runserver"
 
-alias bclear="read -p 'ATTENTION: Tout sera supprimé ! Confirmer (y/n) ? ' CONFIRM; if [ \"\$CONFIRM\" = \"y\" ]; then rm db.sqlite3 && rm -rf blog/migrations && rm -rf authentification/migrations && python manage.py makemigrations && python manage.py migrate; else echo 'Annulé'; fi"
+alias bclear="read -p '⚠️ Tout sera supprimé ! Confirmer (y/n) ? ' CONFIRM; \
+if [ \"\$CONFIRM\" = \"y\" ]; then \
+echo '🔹 Suppression de la base et des migrations...'; \
+rm -f db.sqlite3; \
+for app in authentification blog; do \
+  echo \"🔹 Nettoyage des migrations de \$app...\"; \
+  find \$app/migrations/ -type f -not -name '__init__.py' -delete; \
+done; \
+echo '🔹 Création des nouvelles migrations...'; \
+python manage.py makemigrations authentification blog; \
+echo '🔹 Application des migrations...'; \
+python manage.py migrate; \
+echo '✅ Base et migrations réinitialisées avec succès !'; \
+else echo 'Annulé'; fi"
+
 alias uclearall="read -p 'Supprimer tous les utilisateurs ? (y/n) ' CONFIRM; if [ \"\$CONFIRM\" = \"y\" ]; then python manage.py shell -c 'from authentification.models import User; User.objects.all().delete()'; else echo 'Annulé'; fi"
 alias oclear="read -p 'Supprimer tout sauf les utilisateurs ? (y/n) ' CONFIRM; if [ \"\$CONFIRM\" = \"y\" ]; then python manage.py shell -c 'from django.apps import apps; models = apps.get_models(); [model.objects.all().delete() for model in models if model.__name__ != \"User\"]'; else echo 'Annulé'; fi"
 alias uclear="read -p 'Supprimer tout sauf les super utilisateurs ? (y/n) ' CONFIRM; if [ \"\$CONFIRM\" = \"y\" ]; then python manage.py shell -c 'from django.apps import apps; from authentification.models import User; users = User.objects.filter(is_superuser=True); for model in apps.get_models(): if model.__name__ == \"User\": model.objects.exclude(pk__in=[u.pk for u in users]).delete(); else: model.objects.all().delete()'; else echo 'Annulé'; fi"

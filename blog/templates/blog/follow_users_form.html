@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h2>Suivre des créateurs</h2>
+
+<form method="post" class="follow-form">
+    {% csrf_token %}
+    <div class="creators-list">
+        {% for checkbox in form.follows %}
+        {% with creator=checkbox.choice_label %}
+        <div class="creator-card">
+            <!-- Photo -->
+            <div class="creator-photo">
+                {% if creator.profile_photo %}
+                    <img src="{{ creator.profile_photo.url }}" alt="{{ creator.username }}">
+                {% else %}
+                    <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
+                {% endif %}
+            </div>
+
+            <!-- Nom + case à cocher -->
+            <label class="creator-label" for="{{ checkbox.id_for_label }}">
+                {{ creator.username }}
+            </label>
+
+            <div class="creator-checkbox">
+                {{ checkbox.tag }}
+            </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn-submit">Confirmer</button>
+</form>
+{% endblock %}

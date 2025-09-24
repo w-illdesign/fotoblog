@@ -17,18 +17,22 @@ from blog.views import (
     ToggleLikeView, 
     EditBlogView,  
     CreateMultiplePhotosView,
+    FollowUsersView,
+    UserProfileView,
 )
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
     # Auth
-    path('', LoginPageView.as_view(), name='login'),
+    path('login', LoginPageView.as_view(), name='login'),
     path('logout/', LogoutUserView.as_view(), name='logout'),
     path('signup/', SignupPageView.as_view(), name='signup'),
 
     # Blog
-    path('home/', HomeView.as_view(), name='home'),
+    path('', HomeView.as_view(), name='home'),
     path('photo/upload/', PhotoUploadView.as_view(), name='photo_upload'),
     path('update-profile-photo/', UpdateProfilePhotoView.as_view(), name='update_profile_photo'),
     path('create/', BlogAndPhotoUploadView.as_view(), name='create_blog_post'),
@@ -42,8 +46,19 @@ urlpatterns = [
 
     # Edit blog
     path('blog/<int:blog_id>/edit/', EditBlogView.as_view(), name='edit_blog'),
+    
+    
+   
+    path('follow-users/', FollowUsersView.as_view(), name='follow_users'),
+    
+    
+   
+    path('profile/<str:username>/', UserProfileView.as_view(), name='user-profile'),
 
 ]
+
+
+
 
 
 if settings.DEBUG:
