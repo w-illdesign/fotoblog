@@ -35,7 +35,7 @@
 
       <p class="lead">
           {% if user.is_authenticated %}
-          Quoi de neuf {{ user.username }} !
+       <a href="{% url 'user-profile' username=user.username %}">   Quoi de neuf {{ user.username }} ! </a>
             
             {% else %}
         
@@ -111,14 +111,68 @@
     </h2>
     <nav class="header-actions">
       {% if user.is_authenticated %}
-          <a href="{% url 'logout' %}" class="btn">Se déconnecter</a>
+      {% block deconnexion %} 
+      
+      
+      
+  
+  
+      <div class="profil-header-container">
+       <a href="{% url 'user-profile' username=user.username %}">
+    <div class="profile-photo small">
+        {% if user.profile_photo %}
+        
+            <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}’s avatar" loading="lazy">
+        {% else %}
+            <img src="{% static 'icons/default_profile.png' %}" alt="Avatar par défaut" loading="lazy">
+        {% endif %}
+    </div>
+</a></div>
+                        
+                        
+      {% endblock %}
+         
       {% else %}
-          <a href="{% url 'login' %}" class="btn">Se connecter</a>
-          <a href="{% url 'signup' %}" class="btn primary">S'inscrire</a>
+     
+        <a href="{% url 'login' %}" class="btn connexion">Se connecter</a>
+       
+        
+          
+          <a href="{% url 'signup' %}" class="btn primary deconnexion">S'inscrire</a>
       {% endif %}
     </nav>
   </div>
 </header>
+
+<style>
+  
+
+
+
+  /* Conteneur profil */
+  .profil-header-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Photo de profil réduite */
+  .profil-header-container .profile-photo.small {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  .profil-header-container .profile-photo.small img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+
+</style>
 <style>
  /* ================= HERO HEADER ================= */
 #hero-header, #hero-header-user-profil {
@@ -188,10 +242,9 @@
   top: 0;
   left: 0;
   right: 0;
-
   height: 100px;
   z-index: 1000;
-
+padding: 0.5rem 1rem;
   display: flex;
   align-items: center;
   justify-content: center;

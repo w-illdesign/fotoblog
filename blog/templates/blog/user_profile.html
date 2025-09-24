@@ -5,7 +5,7 @@
 {% load time_blog %}
 
 
-<div style="dispay:none;">
+<h2 class="logo" style="display:none;">
 {% block header_title %}
  {% if request.user == profile_user %}
  Mon Profil
@@ -13,7 +13,15 @@
  FotoBlog 
  {% endif %}
 {% endblock %}
-</div>
+
+
+
+{% block deconnexion %}{% if request.user == profile_user %}
+<a href="{% url 'logout' %}" class="btn">Se déconnecter</a>
+   {% endif %} {% endblock %}    
+
+</h2>
+
 
 <!-- CSS spécifique à la page -->
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
@@ -92,21 +100,23 @@
   </div>
 </header>
 
-<div class="button-container">
-    {% if user.is_authenticated %}
-        {% if perms.blog.add_blog %}
-            <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
-            <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
-        {% else %}
-            <a href="{% url 'follow_users' %}" class="btn-create">Suivre des créateurs</a>
-            <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
-        {% endif %}
-    {% else %}
-        <a href="{% url 'login' %}" class="btn-create">Se connecter</a>
-        <a href="{% url 'signup' %}" class="btn-upload">S'inscrire</a>
-    {% endif %}
-</div>
 
+{% if user.is_authenticated and user == profile_user %}
+    {% if profile_user.profile_photo %}
+        <div class="button-container">
+            {% if perms.blog.add_blog %}
+                <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
+                <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
+            {% else %}
+                <a href="{% url 'follow_users' %}" class="btn-create">Suivre des créateurs</a>
+                <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
+            {% endif %}
+</div>
+            <!-- Nouveau bouton pour modifier son profil --><div class="button-container">
+            <a href="#" class="btn-edit">Mon Album</a><a href="#" class="btn-edit">Modifier mon profil</a>
+        </div>
+    {% endif %}
+{% endif %}
 
 <!-- GALERIE DE PHOTOS -->
 <div id="feed-container" class="photo-gallery" data-initial-offset="{{ photos|length }}">
@@ -203,7 +213,13 @@
         </div>
         {% endwith %}
     {% empty %}
-        <p class="no-photos-msg">Cet utilisateur n'a publié aucune photo pour le moment.</p>
+    
+    <p class="no-photos-msg">
+     {% if not user == profile_user %}   Cet utilisateur n'a publié aucune photo pour le moment.{% else %} Vous n'avez mis en ligne aucune publication pour le moment.
+     {% endif %}
+     </p>
+        
+        
     {% endfor %}
 </div>
 

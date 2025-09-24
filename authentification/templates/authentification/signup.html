@@ -2,8 +2,25 @@
 {% block content %}
 {% load static %}
 
+<style>
+    #hero-header{
+        display: none;
+    }
+    
+    body{
+    
+    margin-top : 110px;
+    
+  }
+    
+   .deconnexion{
+        display: none;
+    }
+</style>
+   
+
 <div class="login-card" role="main" aria-labelledby="site-title">
-    <h1 id="site-title">FotoBlog</h1>
+    <h1 id="site-title">Inscription</h1>
     <p class="lead">Crée ton compte pour partager tes photos</p>
 
     {% if form.errors %}
