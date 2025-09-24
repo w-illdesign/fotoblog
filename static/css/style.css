@@ -159,7 +159,7 @@
     display: block;
     align-items: center;
     justify-content: center;
-    padding: 0rem 0.7rem;
+    padding: 3rem 1rem;
     line-height: 1.4;
   }
 
@@ -719,7 +719,7 @@ input:-moz-autofill {
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--accent);
-    background: #ffffff88;
+    
 }
 
 /* Petite photo générique */
@@ -1199,6 +1199,7 @@ button[type="submit"]:hover {
   object-fit: cover;       /* remplissage du conteneur sans déformation */
   object-position: center; /* centre l'image si elle est coupée */
   display: block;
+  
 }
 
 /* === Infos texte === */
@@ -1247,6 +1248,7 @@ margin-left: 12px;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  
 }
 
 .user-info .details p {

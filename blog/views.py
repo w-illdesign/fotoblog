@@ -48,47 +48,112 @@ def auto_extract_tags(text, max_tags=5):
 # ======================================================
 # Page d'accueil
 # ======================================================
-# blog/views.py
+
+# blog/views.py (extrait : HomeView)
+from django.urls import reverse, NoReverseMatch
 from django.views.generic import ListView
 from django.http import JsonResponse
 from django.db.models import Count
 
-from . import models
-from .algorithme import compute_feed_for_user  # adapte le chemin si besoin
+from .models import Photo, Like
+from .algorithme import compute_feed_for_user
+from blog.utils import facebook_time  # la fonction partagée que tu as déplacée dans blog/utils.py
 
 
 class HomeView(ListView):
     template_name = "blog/home.html"
     context_object_name = "photos"
-    paginate_by = 20  # utile uniquement pour rendu HTML initial
+    paginate_by = 20
+
+    def _normalize_feed(self, feed):
+        """
+        Normalise le feed en LISTE d'instances Photo.
+        Accepté : QuerySet[Photo], list[Photo], list[int], list[dict {'id':...}], mixte.
+        Retourne : list[Photo] (ordre préservé quand possible).
+        """
+        if feed is None:
+            return []
+
+        try:
+            iter(feed)
+        except TypeError:
+            return []
+
+        ids = []
+        instances = []
+        for item in feed:
+            # instance Photo déjà fournie
+            if isinstance(item, Photo):
+                instances.append(item)
+                ids.append(item.id)
+                continue
+
+            # dict contenant un id
+            if isinstance(item, dict) and "id" in item:
+                try:
+                    ids.append(int(item.get("id")))
+                except Exception:
+                    pass
+                continue
+
+            # entier (id)
+            if isinstance(item, int):
+                ids.append(item)
+                continue
+
+            # objet quelconque avec attribut id
+            pid = getattr(item, "id", None)
+            if isinstance(pid, int):
+                ids.append(pid)
+                continue
+
+        # si on a seulement des instances Photo, on les retourne directement
+        if not ids and instances:
+            return instances
+        if not ids:
+            return []
+
+        # récupérer les instances en base (select_related uploader pour éviter N+1)
+        qs_photos = Photo.objects.filter(id__in=ids).select_related("uploader")
+        photos_map = {p.id: p for p in qs_photos}
+
+        normalized = []
+        seen = set()
+        for pid in ids:
+            obj = photos_map.get(pid)
+            if obj and obj.id not in seen:
+                normalized.append(obj)
+                seen.add(obj.id)
+
+        # ajouter les instances originales si présentes et non déjà ajoutées
+        for p in instances:
+            if p.id not in seen:
+                normalized.append(p)
+                seen.add(p.id)
+
+        return normalized
 
     def get_queryset(self):
         user = self.request.user
         if not user.is_authenticated:
-            # visiteurs → quelques photos récentes
-            return list(
-                models.Photo.objects
-                .annotate(likes_count=Count('likes'))
-                .order_by('-date_created')[:100]
-            )
-        # utilisateurs → feed personnalisé
-        return compute_feed_for_user(user, limit=500)
+            # visiteurs -> photos récentes (QuerySet slice, avec annotation likes_count utile côté serveur)
+            return Photo.objects.annotate(likes_count=Count("likes")).order_by("-date_created")[:100]
+
+        # utilisateur connecté -> feed personnalisé (normalize to Photo instances)
+        feed = compute_feed_for_user(user, limit=500)
+        return self._normalize_feed(feed)
 
     def _is_json_request(self):
-        """Détecte si c’est une requête AJAX/JSON/scroll."""
         r = self.request
-        if r.headers.get("x-requested-with") == "XMLHttpRequest":
-            return True
-        if "application/json" in r.headers.get("accept", ""):
-            return True
-        if "offset" in r.GET:  # utilisé par scroll infini
-            return True
-        return False
+        return (
+            r.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in r.headers.get("accept", "")
+            or "offset" in r.GET
+        )
 
     def get(self, request, *args, **kwargs):
-        """Renvoie JSON si c’est un scroll, sinon HTML classique."""
+        # branche AJAX / JSON (infinite scroll)
         if self._is_json_request():
-            # pagination côté front
             try:
                 offset = int(request.GET.get("offset", 0))
             except (TypeError, ValueError):
@@ -99,43 +164,121 @@ class HomeView(ListView):
                 limit = 20
 
             feed = self.get_queryset()
-            total = len(feed)
+            feed_list = list(feed) if hasattr(feed, "__iter__") else []
+            total = len(feed_list)
 
             start = max(0, offset)
             end = min(total, start + limit)
-            batch = feed[start:end]
+            batch = feed_list[start:end]
 
-            # likes de l’utilisateur
+            # ids valides du batch
+            photo_ids = [getattr(p, "id", None) for p in batch if getattr(p, "id", None) is not None]
+
+            # likes de l'utilisateur pour ces photos
             photo_likes = {}
             user = request.user
-            if user.is_authenticated:
-                liked_qs = (
-                    models.Like.objects.filter(user=user, photo__in=batch)
-                    .values_list("photo_id", flat=True)
-                )
-                photo_likes = {pid: True for pid in liked_qs}
+            if user.is_authenticated and photo_ids:
+                liked_qs = Like.objects.filter(user=user, photo_id__in=photo_ids).values_list("photo_id", flat=True)
+                photo_likes = {int(pid): True for pid in liked_qs}
 
-            # transformer les objets en JSON safe
+            # construire la réponse JSON (sécurisée / sérialisable)
             items = []
-            for photo in batch:
+            for raw in batch:
+                # s'assurer d'avoir une instance Photo
+                photo = raw
+                if not isinstance(photo, Photo):
+                    # tenter de récupérer depuis la base si on a juste un id/dict
+                    pid = None
+                    if isinstance(raw, dict):
+                        pid = raw.get("id")
+                    else:
+                        pid = getattr(raw, "id", None)
+                    if pid:
+                        try:
+                            photo = Photo.objects.select_related("uploader").get(id=pid)
+                        except Photo.DoesNotExist:
+                            continue
+                    else:
+                        continue
+
                 uploader = getattr(photo, "uploader", None)
-                uploader_info = {
-                    "id": getattr(uploader, "id", None),
-                    "username": getattr(uploader, "username", ""),
-                    "profile_photo": getattr(
-                        getattr(uploader, "profile_photo", None), "url", None
-                    ),
-                    "role": getattr(uploader, "role", None),
-                } if uploader else {}
+
+                # profile_photo url (sécurisé) — évite ValueError si pas de fichier
+                profile_photo_url = None
+                if uploader:
+                    pp = getattr(uploader, "profile_photo", None)
+                    if pp and getattr(pp, "name", ""):
+                        try:
+                            profile_photo_url = pp.url
+                        except Exception:
+                            profile_photo_url = None
+
+                # -------- safe likes_count --------
+                likes_count = 0
+                try:
+                    lc = getattr(photo, "likes_count", None)
+                    if callable(lc):
+                        try:
+                            val = lc()
+                            likes_count = int(val) if val is not None else 0
+                        except Exception:
+                            likes_count = 0
+                    elif lc is not None:
+                        try:
+                            likes_count = int(lc)
+                        except Exception:
+                            likes_count = 0
+                    else:
+                        try:
+                            likes_count = int(photo.likes.count())
+                        except Exception:
+                            likes_count = 0
+                except Exception:
+                    likes_count = 0
+                # -----------------------------------
+
+                # date iso
+                date_created_iso = None
+                dc = getattr(photo, "date_created", None)
+                if dc:
+                    try:
+                        date_created_iso = dc.isoformat()
+                    except Exception:
+                        date_created_iso = str(dc)
+
+                liked_flag = bool(photo_likes.get(int(photo.id), False))
+
+                # uploader info (JSON-safe) + profile_url via reverse() avec fallback
+                uploader_info = {}
+                if uploader:
+                    username = getattr(uploader, "username", "") or ""
+                    try:
+                        profile_url = reverse("user-profile", kwargs={"username": username})
+                    except NoReverseMatch:
+                        profile_url = f"/profile/{username}/"
+                    uploader_info = {
+                        "id": int(getattr(uploader, "id")) if getattr(uploader, "id", None) is not None else None,
+                        "username": str(username),
+                        "profile_photo": profile_photo_url,
+                        "role": str(getattr(uploader, "role", "")) or "",
+                        "profile_url": profile_url,
+                    }
+
+                # date_facebook pré-calculée (sécurisé)
+                try:
+                    date_fb = facebook_time(getattr(photo, "date_created", None))
+                except Exception:
+                    date_fb = ""
 
                 items.append({
-                    "id": photo.id,
-                    "url": getattr(getattr(photo, "image", None), "url", None),
-                    "caption": getattr(photo, "caption", ""),
+                    "id": int(photo.id),
+                    "url": str(getattr(getattr(photo, "image", None), "url", "")) or None,
+                    "caption": str(getattr(photo, "caption", "")) or "",
                     "uploader": uploader_info,
-                    "likes_count": getattr(photo, "likes_count", photo.likes.count()),
-                    "liked": bool(photo_likes.get(photo.id, False)),
-                    "date_created": photo.date_created.isoformat() if getattr(photo, "date_created", None) else None,
+                    "likes_count": likes_count,
+                    "liked": bool(liked_flag),
+                    "date_created": date_created_iso,
+                    "date_facebook": date_fb,
                 })
 
             return JsonResponse({
@@ -147,24 +290,53 @@ class HomeView(ListView):
                 "total": total,
             })
 
-        # rendu HTML normal
+        # rendu HTML normal (ListView)
         return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
-        """Prépare le contexte pour le rendu HTML initial."""
+        """
+        Construit le contexte pour le rendu HTML initial (photos, photo_likes,
+        photo_dates_facebook, et ajout d'un profile_url sur chaque uploader).
+        """
         context = super().get_context_data(**kwargs)
         user = self.request.user
+
+        photos_seq = context.get("photos", [])
+        photos_list = list(photos_seq) if hasattr(photos_seq, "__iter__") else []
+
+        # ids valides
+        photo_ids = [getattr(p, "id", None) for p in photos_list if getattr(p, "id", None) is not None]
+
+        # likes de l’utilisateur (pour les photos rendues côté serveur)
         photo_likes = {}
-
-        if user.is_authenticated:
-            liked_qs = models.Like.objects.filter(
-                user=user, photo__in=context.get("photos", [])
-            ).values_list("photo_id", flat=True)
-            photo_likes = {pid: True for pid in liked_qs}
-
+        if user.is_authenticated and photo_ids:
+            liked_qs = Like.objects.filter(user=user, photo_id__in=photo_ids).values_list("photo_id", flat=True)
+            photo_likes = {int(pid): True for pid in liked_qs}
         context["photo_likes"] = photo_likes
+
+        # préparer date_facebook pour affichage côté template
+        photo_dates_facebook = {}
+        for photo in photos_list:
+            try:
+                photo_dates_facebook[photo.id] = facebook_time(photo.date_created)
+            except Exception:
+                photo_dates_facebook[photo.id] = ""
+        context["photo_dates_facebook"] = photo_dates_facebook
+
+        # ajouter profile_url sur uploader pour faciliter le template server-side
+        for photo in photos_list:
+            uploader = getattr(photo, "uploader", None)
+            if uploader:
+                try:
+                    username = getattr(uploader, "username", "") or ""
+                    try:
+                        uploader.profile_url = reverse("user-profile", kwargs={"username": username})
+                    except NoReverseMatch:
+                        uploader.profile_url = f"/profile/{username}/"
+                except Exception:
+                    uploader.profile_url = None
+
         return context
-        
         
 # ======================================================
 # Détail d'un blog

@@ -12,7 +12,7 @@
         <div class="creator-card">
             <!-- Photo -->
             <div class="creator-photo">
-                {% if creator.profile_photo %}
+                {% if user.creator.profile_photo %}
                     <img src="{{ creator.profile_photo.url }}" alt="{{ creator.username }}">
                 {% else %}
                     <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
@@ -21,7 +21,7 @@
 
             <!-- Nom + case à cocher -->
             <label class="creator-label" for="{{ checkbox.id_for_label }}">
-                {{ creator.username }}
+                {{ user.creator.username }}
             </label>
 
             <div class="creator-checkbox">

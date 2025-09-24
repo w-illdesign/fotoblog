@@ -7,17 +7,20 @@
 
 <h2 class="logo" style="display:none;">
 {% block header_title %}
- {% if request.user == profile_user %}
- Mon Profil
+<a href="{% url 'home' %}"  >
+  {% if request.user == profile_user %}
+Retour 
  {% else %}
- FotoBlog 
- {% endif %}
+ Accueil
+ {% endif %}  
+</a>
+ 
 {% endblock %}
 
 
 
 {% block deconnexion %}{% if request.user == profile_user %}
-<a href="{% url 'logout' %}" class="btn">Se déconnecter</a>
+<a href="{% url 'logout' %}" class="btn">Paramètre</a>
    {% endif %} {% endblock %}    
 
 </h2>
@@ -82,14 +85,29 @@
 
         <div class="stat">
           
-          <span>{{ photos_count }} Publication{% if photos_count != 1 %}s{% endif %}</span>
+          <span>{{ photos_count }} Publication{% if photos_count > 1 %}s{% endif %}</span>
         </div>
 
         <div class="stat">
             <span>{{ likes_count }}</span>
           <svg xmlns="http://www.w3.org/2000/svg"
           
-           {% if not request.user == profile_user %} fill="red" {% else %}fill="currentColor" {% endif %} viewBox="0 0 24 24" class="icon" style="width:24px;height:24px;">
+           {% if photos_count >= 0 and photos_count < 10 %}   
+           
+             fill="#179900"
+             
+           {% elif photos_count >= 10 and photos_count < 20  %}  
+            
+            fill="#009980"
+            
+            {% elif photos_count < 30 %}  
+             fill="#005a99"
+             
+              {% else %}  
+             fill="#990006"
+            {% endif %} 
+            
+            viewBox="0 0 24 24" class="icon" style="width:24px;height:24px;">
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09
                      C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
           </svg>
@@ -102,20 +120,34 @@
 
 
 {% if user.is_authenticated and user == profile_user %}
-    {% if profile_user.profile_photo %}
+    <div class="button-container">
+            <a href="#" class="btn-edit">Ma gallerie</a><a href="#" class="btn-edit">{% if not user.profile_photo %}
+            Ajouter un profil 
+            {% else %}
+            Changer le profil 
+            {% endif %}
+            </a>
+        </div>
+    
         <div class="button-container">
             {% if perms.blog.add_blog %}
                 <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
                 <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
+                
             {% else %}
                 <a href="{% url 'follow_users' %}" class="btn-create">Suivre des créateurs</a>
                 <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
             {% endif %}
+            
 </div>
-            <!-- Nouveau bouton pour modifier son profil --><div class="button-container">
-            <a href="#" class="btn-edit">Mon Album</a><a href="#" class="btn-edit">Modifier mon profil</a>
-        </div>
-    {% endif %}
+            <!-- Nouveau bouton pour modifier son profil -->
+    <div class="button-container">
+            {% if perms.blog.add_blog %}
+                
+                <a href="{% url 'follow_users' %}" class="btn-create">Suivre d'autres créateurs</a>
+            {% endif %}
+            
+            </div>
 {% endif %}
 
 <!-- GALERIE DE PHOTOS -->
@@ -131,7 +163,7 @@
                             {% if photo.uploader.profile_photo %}
                                 <img src="{{ photo.uploader.profile_photo.url }}" alt="{{ photo.uploader.username }}">
                             {% else %}
-                                <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
+                                <img src="{% static 'icons/default_profile.png' %}" alt="Photo par défaut">
                             {% endif %}
                         </div>
                         <div class="details small">
@@ -215,7 +247,7 @@
     {% empty %}
     
     <p class="no-photos-msg">
-     {% if not user == profile_user %}   Cet utilisateur n'a publié aucune photo pour le moment.{% else %} Vous n'avez mis en ligne aucune publication pour le moment.
+     {% if not user == profile_user %}   {{ profile_user.username }} n'a publié aucune photo pour le moment.{% else %} Vous n'avez mis en ligne aucune publication pour le moment.
      {% endif %}
      </p>
         

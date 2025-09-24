@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>FotoBlog</title>
+    <title>Willx</title>
 
     <!-- CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
@@ -16,6 +16,16 @@
 
   
 </head>
+<style>
+    
+    
+    body{
+    
+    padding: 1.1rem 1rem;
+    margin-bottom: 1.1rem;
+    
+  }
+</style>
 
 <body><!-- HERO HEADER -->
 
@@ -23,9 +33,9 @@
 <header id="hero-header" classe="hero-header">
   <div class="hero-inner">
     <div class="brand">
-      <h1>FotoBlog</h1>
+      <h1 class="logo" style="font-weight: 100;">Willx</h1>
 
-      <div class="profile-photo">
+      <div class="profile-photo" style="border: 2px solid var(--accent);">
   {% if user.profile_photo %}
     <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}’s avatar" loading="lazy">
   {% else %}
@@ -39,7 +49,7 @@
             
             {% else %}
         
-        Bienvenue sur FotoBlog — partagez vos photos et explorez de nouveaux horizons !
+        Bienvenue sur Willx — partagez vos photos et explorez de nouveaux horizons !
         {% endif %}
       </p>
 <!-- Section Stats -->
@@ -62,7 +72,7 @@
     <!-- Icône photos -->
     
     <span>
-  {{ photos_count }} Publication{% if photos_count != 1 %}s{% endif %}
+  {{ photos_count }} Publication{% if photos_count > 1 %}s{% endif %}
 </span>
   </div>
 
@@ -107,7 +117,8 @@
 <header id="sticky-header">
   <div class="sticky-inner">
     <h2 class="logo">
-      {% block header_title %}FotoBlog{% endblock %}
+        
+      {% block header_title %} <button class="circle-button"></button>Willx{% endblock %}
     </h2>
     <nav class="header-actions">
       {% if user.is_authenticated %}
@@ -162,6 +173,7 @@
     height: 50px;
     border-radius: 50%;
     overflow: hidden;
+    
   }
 
   .profil-header-container .profile-photo.small img {
@@ -190,8 +202,7 @@
   background: var(--card);
   color: #fff;
 
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
+  border-radius: var(--radius);
   box-shadow: 0 8px 20px rgba(0,0,0,0.16);
 }
 
@@ -219,7 +230,7 @@
   border-radius: 50%;
   overflow: hidden;
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-
+border: 2px solid var(--accent);
   margin: 0 auto;  
 }
 .profile-photo img {
@@ -274,11 +285,14 @@ padding: 0.5rem 1rem;
   padding: 0 1rem;
 }
 
-.logo {
+.logo{
+
   margin: 0;
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 100;
 }
+
+
 
 .header-actions {
   display: flex;

@@ -4,9 +4,10 @@
 {% load static %}
 {% load time_blog %}
 <h2 class="logo" style="display:none;">
-    {% block header_title %}FotoBlog{% endblock %}
+    {% block header_title %}Willx{% endblock %}
 </h2>
 
+   
 
 <!-- CSS spécifique à la page -->
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
@@ -39,7 +40,7 @@
                             {% if photo.uploader.profile_photo %}
                                 <img src="{{ photo.uploader.profile_photo.url }}" alt="{{ photo.uploader.username }}">
                             {% else %}
-                                <img src="{% static 'icons/user-light-full.svg' %}" alt="Photo par défaut">
+                                <img src="{% static 'icons/default_profile.png' %}" alt="Photo par défaut">
                             {% endif %}
                         </div>
                         <div class="details small">
@@ -130,7 +131,7 @@
     <h2>Vous n'avez pas de photo de profil</h2>
     <form method="post" enctype="multipart/form-data" action="{% url 'update_profile_photo' %}">
       {% csrf_token %}
-      <<input type="file" name="profile_photo" id="profilePhotoInput" accept="image/*" required style="display:none">
+      <input type="file" name="profile_photo" id="profilePhotoInput" accept="image/*" required style="display:none">
 
       <div id="previewContainer" class="preview-container">
         <div class="preview-user-info">
