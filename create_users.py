@@ -12,13 +12,30 @@ User = get_user_model()
 
 # --- Utilisateurs de base ---
 usernames = [
-    "Shadow", "Blaze", "Viper", "Rogue", "Nova",
-    "Phoenix", "Will", "Ghost", "Ace", "Storm",
-    "Falcon", "Zephyr", "Orion", "Luna", "Sable",
-    "Echo", "Onyx", "Titan", "Jade", "Raven"
+    "Shadow", 
+    "Blaze", 
+    "Viper", 
+    "Rogue", 
+    "Phoenix",
+    "Nova", 
+    "Will",
+    "Ghost",
+    "Ace",
+    "Storm",
+    
+    "Falcon",
+    "Zephyr",
+    "Orion", 
+    "Luna",
+    "Sable",
+    "Echo",
+    "Onyx", 
+    "Titan", 
+    "Jade",
+    "Raven"
 ]
 
-emails = [f"{u.lower()}@gmail.com" for u in usernames]
+emails = [f"willx{u.lower()}@gmail.com" for u in usernames]
 
 # --- Choisir 5 créateurs au hasard ---
 creator_indices = set(random.sample(range(20), 5))

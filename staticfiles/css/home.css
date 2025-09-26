@@ -1,0 +1,81 @@
+    .photo-image-container {
+    position: relative; /* Nécessaire pour que l'overlay se place par rapport à l'image */
+    width: 100%;
+    height: auto; /* ou fixe si besoin */
+}
+.user-info-overlay {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,0,0,0.5);
+    padding: 6px 10px;
+    border-radius: 12px;
+    color: white;
+}
+
+.user-info-overlay .profile-photo.small {
+    width: 37px;
+    height: 37px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 1px solid var(--accent);
+}
+
+.user-info-overlay .profile-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    
+}
+
+.user-info-overlay .details.small {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+.user-info-overlay .details .uploader-line {
+    margin: 0;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.user-info-overlay .details .date.small {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.creator-badge {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.feed-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.feed-loader::after {
+  content: "";
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0,0,0,0.1);
+  border-top-color: #3AB0FF;  /* couleur du loader */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

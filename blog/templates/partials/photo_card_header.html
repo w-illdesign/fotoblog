@@ -1,0 +1,40 @@
+{# partial: templates/partials/photo_card_header.html #}
+{% load custom_tags %}
+{% load static %}
+{% load time_blog %}
+
+<div class="photo-card-wrapper" data-photo-id="{{ photo.id }}">
+  <div class="photo-card">
+    <div class="photo-image-container">
+      <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
+      <div class="user-info-overlay">
+        <div class="profile-photo small">
+          {% if photo.uploader.profile_photo %}
+            <img src="{{ photo.uploader.profile_photo.url }}" alt="{{ photo.uploader.username }}">
+          {% else %}
+            <img src="{% static 'icons/default_profile.png' %}" alt="Photo par défaut">
+          {% endif %}
+        </div>
+        <div class="details small">
+          <p class="uploader-line">
+            {{ photo.uploader.username }}
+            {% if photo.uploader.role == 'Creator' %}
+              <svg class="creator-badge" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Creator badge">
+                <defs>
+                  <linearGradient id="gCreator" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0" stop-color="#3AB0FF"/>
+                    <stop offset="1" stop-color="#1DA1F2"/>
+                  </linearGradient>
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#0b76c9" flood-opacity="0.35"/>
+                  </filter>
+                </defs>
+                <circle cx="12" cy="12" r="11.2" fill="url(#gCreator)" filter="url(#shadow)" />
+                <path d="M8.6 12.2 L11 14.6 L15.6 9.8" fill="none" stroke="#fff" stroke-width="2.2"/>
+              </svg>
+            {% endif %}
+          </p>
+          <div class="date small">{{ photo.date_created|publications_time }}</div>
+        </div>
+      </div>
+    </div>

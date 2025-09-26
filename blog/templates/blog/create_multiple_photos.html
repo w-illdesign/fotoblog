@@ -1,53 +1,448 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
-<div class="login-card">
-    <h1>FotoBlog</h1>
-    <p class="lead">Télécharge plusieurs photos</p>
+<div class="login-card" style="max-width:980px;margin:1.5rem auto;padding:1.5rem;">
+
+  <h1>FotoBlog — Import multiple</h1>
+  <p class="lead">Importe plusieurs photos d’un coup, puis ajoute une légende et des tags pour chacune.</p>
+
+  {% if messages %}
+    <div class="messages">
+      {% for m in messages %}
+        <div class="message {{ m.tags }}">{{ m }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" id="upload-form" novalidate>
+    {% csrf_token %}
+    {{ formset.management_form }}
 
     {% if formset.non_form_errors %}
-    <div class="errors_messages">
+      <div class="errors_messages">
         <strong>Erreur</strong>
         <ul>
-            {% for error in formset.non_form_errors %}
-                <li>{{ error }}</li>
-            {% endfor %}
+          {% for error in formset.non_form_errors %}
+            <li>{{ error }}</li>
+          {% endfor %}
         </ul>
-    </div>
+      </div>
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data" novalidate>
-        {% csrf_token %}
-        {{ formset.management_form }}
+    
+    <!-- Zone des cartes (un bloc par image) -->
+    <div id="forms-area">
+      {# Rendu initial des formulaires fournis par le formset. Les cartes sans image restent cachées. #}
+      {% for form in formset %}
+      <div class="formset-item" data-index="{{ forloop.counter0 }}">
+  <div class="item-box" style="display:flex; gap:12px; align-items:flex-start; flex-direction:column; border:1px solid #eee; padding:10px; border-radius:8px; background: var(--card);">
 
-        {% for form in formset %}
-            <div class="form-group">
-                {{ form.image }}
-                
-                
-                
-                <label for="{{ form.image.id_for_label }}">Image {{ forloop.counter }}</label>
-            </div>
+    <div style="display:flex; gap:12px; width:100%;">
+      <div class="left-slot">
+        <div class="file-wrapper" style="position:relative;">
+          {{ form.image }} <!-- input natif Django caché -->
+          <img class="preview" alt="aperçu image" style="display:none; max-width:170px; max-height:130px; object-fit:cover; border-radius:6px;">
+          
+          <!-- Bouton Supprimer en bas droite de la photo -->
+          <button type="button" class="remove-btn" 
+                  style="position:absolute; bottom:4px; right:4px; padding:4px 8px; background:#fff; border:1px solid #ddd; border-radius:4px; cursor:pointer;">
+            Supprimer
+          </button>
+        </div>
+      </div>
 
-            <div class="form-group">
-                {{ form.caption }}
-                
-                <label for="{{ form.caption.id_for_label }}">Légende {{ forloop.counter }}</label>
-            </div>
+      <div class="meta-right" style="flex:1; display:flex; flex-direction:column;">
+        <div class="title">Image {{ forloop.counter }}</div>
+      </div>
+    </div>
 
-            <!-- Nouveau champ Tags -->
-            <div class="form-group">
-                <input type="text" name="tags_{{ forloop.counter0 }}" placeholder="Tags séparés par des virgules">
-                <label>Tags {{ forloop.counter }}</label>
-            </div>
+    <!-- Champs caption et tags toujours en dessous de la section photo -->
+    <div class="field caption-field" style="display:none; margin-top:8px;">
+      {{ form.caption }}
+      <label for="{{ form.caption.id_for_label }}">Légende</label>
+      {% if form.caption.errors %}
+        <div class="field-errors">{{ form.caption.errors }}</div>
+      {% endif %}
+    </div>
 
-            <hr>
-        {% endfor %}
+    <div class="field tags-field" style="display:none; margin-top:8px;">
+      <input type="text" name="tags_{{ forloop.counter0 }}" class="tags-input" placeholder="Tags (séparés par des virgules)">
+      <label>Tags</label>
+    </div>
 
-        <button type="submit">Publier</button>
-    </form>
-
-    <p class="footnote">
-        <a href="{% url 'home' %}">Retour à l'accueil</a>
-    </p>
+  </div>
 </div>
+      {% endfor %}
+    </div>
+    
+    
+    <!-- Bouton global d'importation -->
+    <!-- Bouton importer déplacé en dessous -->
+<div style="margin-top:12px; text-align:center;">
+  <label for="multi_input" class="import-btn" tabindex="0" style="display:inline-block;">Importer plusieurs photos</label>
+  <input id="multi_input" type="file" accept="image/*" multiple style="display:none;">
+  <small style="display:block;color:#666;margin-top:6px;">
+    Sélectionne plusieurs images (max taille contrôlée côté serveur). Tu pourras ajouter légende & tags pour chaque image.
+  </small>
+</div>
+    {# empty_form pour clonage ; Django y place __prefix__ que l'on remplacera côté JS #}
+    <div id="empty-form-template" style="display:none;">
+      {{ formset.empty_form.as_p }}
+    </div>
+
+    <div style="margin-top:14px;">
+      <button type="submit" class="btn-submit">Publier toutes les photos</button>
+      <a href="{% url 'home' %}" class="btn-cancel" style="margin-left:12px;">Annuler</a>
+    </div>
+  </form>
+</div>
+
+<style>
+/* Apparence simple et propre */
+.import-btn {
+  display:inline-block;
+  padding:10px 16px;
+  background:linear-gradient(180deg,#3b82f6,#2563eb);
+  color:white;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+  box-shadow:0 6px 14px rgba(37,99,235,0.18);
+}
+.import-btn:focus { outline:3px solid rgba(59,130,246,0.25); }
+
+.item-box {
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  border:1px solid #eee;
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:6px;
+  background:#fff;
+}
+.left-slot { width:180px; display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.left-slot .file-wrapper { position:relative; width:100%; }
+.left-slot img.preview { max-width:170px; max-height:130px; object-fit:cover; border-radius:6px; display:block; margin-bottom:6px; }
+.left-slot input[type="file"] { display:none !important; } /* cache le input natif Django */
+
+.meta-right { flex:1; display:flex; align-items:flex-start; }
+.title { font-weight:700; margin-bottom:6px; }
+
+.field { margin-top:8px; }
+.field input[type="text"], .field textarea { width:100%; padding:8px; box-sizing:border-box; border:1px solid #ddd; border-radius:6px; }
+.remove-btn { background:#fff; border:1px solid #ddd; padding:6px 8px; border-radius:6px; cursor:pointer; }
+.btn-submit { padding:10px 16px; background:#10b981; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600; }
+.btn-cancel { color:#374151; text-decoration:none; }
+
+.field-errors { color:#b91c1c; font-size:0.9em; margin-top:6px; }
+
+/* cacher la carte entière tant qu'aucune photo assignée (géré côté JS en ajoutant/enlevant cette classe) */
+.formset-item.hidden { display:none !important; }
+
+/* Carte entière (tout le bloc image + metadata) */
+.formset-item {
+    background-color: none; /* exemple gris clair */
+    border-radius: 8px;         /* optionnel : arrondir les coins */
+     /* optionnel : bordure fine */
+    padding: 10px;              /* espacement intérieur */
+}
+
+/* ou juste le "box" à l'intérieur */
+.item-box {
+    background-color: #ffffff;  /* blanc, ou autre couleur */
+    border-radius: 8px;
+    padding: 10px;
+}
+</style>
+
+<script>
+(function(){
+  // éléments DOM
+  const multi = document.getElementById('multi_input');
+  const formsArea = document.getElementById('forms-area');
+  const emptyTpl = document.getElementById('empty-form-template') ? document.getElementById('empty-form-template').innerHTML : '';
+  const formElement = document.getElementById('upload-form');
+  const totalFormsInput = document.querySelector('input[name$="-TOTAL_FORMS"]');
+
+  // utilitaires
+  const getPrefix = () => {
+    const el = document.querySelector('input[name$="-TOTAL_FORMS"]');
+    return el ? el.name.replace(/-TOTAL_FORMS$/, '') : 'form';
+  };
+  function currentCount(){ return document.querySelectorAll('.formset-item').length; }
+  function emptyHtmlFor(index){ return emptyTpl.replace(/__prefix__/g, String(index)); }
+
+  // --- Création d'une carte (formset item) basée sur empty_form ---
+  function createFormItem(index){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'formset-item hidden';
+    wrapper.dataset.index = index;
+
+    wrapper.innerHTML = `
+      <div class="item-box">
+        <div class="left-slot">
+          <div class="file-wrapper" style="position:relative;">
+            <img class="preview" alt="aperçu image" style="display:none;">
+            <!-- le bouton supprimer peut être positionné dans le template CSS de la photo -->
+            <button type="button" class="remove-btn" style="position:absolute; right:6px; bottom:6px; padding:6px 8px; border-radius:4px; background:#fff; border:1px solid #ddd; cursor:pointer;">Supprimer</button>
+          </div>
+        </div>
+        <div class="meta-right">
+          <div class="title">Image ${index + 1}</div>
+        </div>
+      </div>
+
+      <div class="field caption-field" style="display:none; margin-top:8px;"></div>
+      <div class="field tags-field" style="display:none; margin-top:8px;"></div>
+    `;
+
+    // injecter les champs du empty_form dans la carte (input file, caption, hidden...)
+    if (emptyTpl) {
+      const parser = document.createElement('div');
+      parser.innerHTML = emptyHtmlFor(index);
+      const nodes = parser.querySelectorAll('input, textarea, select, p, label');
+      nodes.forEach(node => {
+        if (node.nodeType !== 1) return;
+        const name = node.getAttribute('name') || '';
+
+        if (name && name.includes('-image')) {
+          node.style.display = 'none';
+          wrapper.querySelector('.left-slot .file-wrapper').appendChild(node);
+        } else if (name && (name.includes('-caption') || name.toLowerCase().includes('caption'))) {
+          wrapper.querySelector('.caption-field').appendChild(node);
+        } else if (node.tagName.toLowerCase() === 'p' && node.innerText.trim()) {
+          wrapper.querySelector('.caption-field').appendChild(node);
+        } else {
+          // hidden fields (id, etc.)
+          node.style.display = 'none';
+          wrapper.appendChild(node);
+        }
+      });
+    }
+
+    // ensure tags input exists
+    let tagsInput = wrapper.querySelector('input[name^="tags_"], .tags-input');
+    if (!tagsInput) {
+      tagsInput = document.createElement('input');
+      tagsInput.type = 'text';
+      tagsInput.name = `tags_${index}`;
+      tagsInput.placeholder = 'Tags (séparés par des virgules)';
+      tagsInput.className = 'tags-input';
+      wrapper.querySelector('.tags-field').appendChild(tagsInput);
+      const lbl = document.createElement('label'); lbl.innerText = 'Tags';
+      wrapper.querySelector('.tags-field').appendChild(lbl);
+    } else {
+      tagsInput.name = `tags_${index}`;
+      wrapper.querySelector('.tags-field').appendChild(tagsInput);
+    }
+
+    // si un input file existait (from empty_form), lier le change pour affichage si le navigateur a conservé un fichier
+    const fileInput = wrapper.querySelector('input[type="file"], input[name*="-image"]');
+    if (fileInput) {
+      fileInput.addEventListener('change', function(){
+        const f = fileInput.files && fileInput.files[0];
+        if (f) handleFileInput(fileInput, wrapper);
+        else hideCard(wrapper);
+      });
+    }
+
+    // card starts hidden until a file is assigned
+    hideCard(wrapper);
+    return wrapper;
+  }
+
+  // Masquer la carte (utilisé quand pas de fichier)
+  function hideCard(wrapper){
+    if(!wrapper) return;
+    wrapper.classList.add('hidden');
+    const preview = wrapper.querySelector('img.preview'); if (preview) preview.style.display = 'none';
+    const cap = wrapper.querySelector('.caption-field'); if (cap) cap.style.display = 'none';
+    const tags = wrapper.querySelector('.tags-field'); if (tags) tags.style.display = 'none';
+  }
+
+  // Afficher la carte et ses champs (après assignation d'une image)
+  function showCard(wrapper){
+    if(!wrapper) return;
+    wrapper.classList.remove('hidden');
+    const preview = wrapper.querySelector('img.preview'); if (preview) preview.style.display = '';
+    const cap = wrapper.querySelector('.caption-field'); if (cap) cap.style.display = '';
+    const tags = wrapper.querySelector('.tags-field'); if (tags) tags.style.display = '';
+  }
+
+  // Lecture & affichage de l'image sélectionnée via input natif
+  function handleFileInput(fileInput, wrapper){
+    try {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) { hideCard(wrapper); return; }
+
+      const preview = wrapper.querySelector('img.preview');
+      if (preview) {
+        const reader = new FileReader();
+        reader.onload = function(e){ preview.src = e.target.result; };
+        reader.readAsDataURL(f);
+      }
+
+      showCard(wrapper);
+
+      const captionInput = wrapper.querySelector('input[name*="-caption"], textarea[name*="-caption"], .caption-field input[type="text"]');
+      if (captionInput) captionInput.focus();
+    } catch (err) {
+      console.error('Erreur handleFileInput:', err);
+    }
+  }
+
+  // Assignation programmatique (global picker) : crée un nouvel input file, y met fileObj, remplace l'ancien input, puis traite
+  function assignFileProgrammatically(wrapper, fileObj){
+    try {
+      const existing = wrapper.querySelector('input[type="file"], input[name*="-image"]');
+      const nameToUse = existing ? existing.getAttribute('name') : `${getPrefix()}-${Number(wrapper.dataset.index)}-image`;
+
+      const newInput = document.createElement('input');
+      newInput.type = 'file';
+      newInput.name = nameToUse;
+      newInput.style.display = 'none';
+
+      const dt = new DataTransfer();
+      dt.items.add(fileObj);
+      try {
+        newInput.files = dt.files;
+      } catch (err) {
+        // fallback : ouvrir picker global
+        console.warn('DataTransfer impossible — fallback vers sélection manuelle.');
+        multi.click();
+        return;
+      }
+
+      newInput.addEventListener('change', function(){ handleFileInput(newInput, wrapper); });
+
+      if (existing && existing.parentNode) existing.parentNode.replaceChild(newInput, existing);
+      else wrapper.querySelector('.left-slot .file-wrapper').appendChild(newInput);
+
+      handleFileInput(newInput, wrapper);
+    } catch (err) {
+      console.error('Erreur assignFileProgrammatically:', err);
+    }
+  }
+
+  // Remplit d'abord cartes vides, puis crée de nouvelles cartes pour les fichiers restants
+  function fillFromGlobal(files){
+    try {
+      const arr = Array.from(files || []);
+      if (!arr.length) return;
+
+      let cards = Array.from(document.querySelectorAll('.formset-item'));
+      if (!cards.length) {
+        const c = createFormItem(0);
+        formsArea.appendChild(c);
+        cards = [c];
+      }
+
+      let emptyCards = cards.filter(c => {
+        const fi = c.querySelector('input[type="file"], input[name*="-image"]');
+        return !fi || !(fi.files && fi.files.length);
+      });
+
+      let idx = 0;
+      while (idx < arr.length && emptyCards.length) {
+        const w = emptyCards.shift();
+        assignFileProgrammatically(w, arr[idx]);
+        idx++;
+      }
+
+      while (idx < arr.length) {
+        const newIndex = currentCount();
+        const newCard = createFormItem(newIndex);
+        formsArea.appendChild(newCard);
+        // update management form count
+        if (totalFormsInput) totalFormsInput.value = String(currentCount());
+        assignFileProgrammatically(newCard, arr[idx]);
+        idx++;
+      }
+
+      if (totalFormsInput) totalFormsInput.value = String(currentCount());
+    } catch (err) {
+      console.error('Erreur fillFromGlobal:', err);
+    }
+  }
+
+  // --- suppression : on utilise la délégation d'événements pour être sûr de toujours avoir le bon wrapper ---
+  formsArea.addEventListener('click', function(e){
+    const btn = e.target.closest('.remove-btn');
+    if (!btn) return;
+    const wrapper = btn.closest('.formset-item');
+    if (!wrapper) return;
+    removeWrapper(wrapper);
+  });
+
+  // suppression d'une carte + réindexation
+  function removeWrapper(wrapper) {
+    try {
+      if (!wrapper) return;
+      // remove element
+      wrapper.remove();
+
+      // renumérotation
+      const remaining = Array.from(document.querySelectorAll('.formset-item'));
+      remaining.forEach((el, i) => {
+        el.dataset.index = i;
+        const title = el.querySelector('.title'); if (title) title.textContent = `Image ${i + 1}`;
+        // renommer tags
+        const tags = el.querySelector('.tags-input'); if (tags) tags.name = `tags_${i}`;
+        // renommer inputs Django (form-<n>-field)
+        el.querySelectorAll('input, textarea, select').forEach(inp => {
+          const name = inp.getAttribute('name') || '';
+          if (name.match(/-\d+-/)) inp.setAttribute('name', name.replace(/-(\d+)-/, `-${i}-`));
+          const id = inp.getAttribute('id') || '';
+          if (id.match(/-\d+-/)) inp.setAttribute('id', id.replace(/-(\d+)-/, `-${i}-`));
+        });
+      });
+
+      if (totalFormsInput) totalFormsInput.value = String(remaining.length);
+    } catch (err) {
+      console.error('Erreur removeWrapper:', err);
+    }
+  }
+
+  // initialisation : lier tout ce qui doit l'être sur les cartes existantes
+  (function initExisting(){
+    document.querySelectorAll('.formset-item').forEach(function(item, idx){
+      item.dataset.index = idx;
+
+      const fi = item.querySelector('input[type="file"], input[name*="-image"]');
+      if (fi && fi.files && fi.files.length) {
+        handleFileInput(fi, item);
+      } else {
+        hideCard(item);
+      }
+      if (fi) {
+        fi.addEventListener('change', function(){ handleFileInput(fi, item); });
+      }
+    });
+    // ensure initial TOTAL_FORMS correct
+    if (totalFormsInput) totalFormsInput.value = String(currentCount());
+  })();
+
+  // événements
+  if (multi) {
+    multi.addEventListener('change', function(e){
+      fillFromGlobal(e.target.files);
+      try { multi.value = ''; } catch (err) {}
+    });
+  }
+
+  // avant l'envoi, mettre à jour TOTAL_FORMS et noms des tags
+  if (formElement) {
+    formElement.addEventListener('submit', function(){
+      if (totalFormsInput) totalFormsInput.value = String(currentCount());
+      Array.from(document.querySelectorAll('.formset-item')).forEach((el, i) => {
+        const t = el.querySelector('.tags-input');
+        if (t) t.name = `tags_${i}`;
+      });
+    });
+  }
+
+})();
+</script>
+
 {% endblock content %}

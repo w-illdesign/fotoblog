@@ -161,45 +161,56 @@
 
   // ---------- like buttons (AJAX) ----------
   function initLikeButtons(root = document) {
-    const likeSound = document.getElementById("likeSound");
-    const scope = root || document;
-    scope.querySelectorAll(".like-btn").forEach((btn) => {
-      if (btn.dataset.bound === "1") return;
-      btn.dataset.bound = "1";
+  const likeSound = document.getElementById("likeSound");
+  const scope = root || document;
+  scope.querySelectorAll(".like-btn").forEach((btn) => {
+    if (btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
 
-      btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        const wrapper = btn.closest(".photo-card-wrapper");
-        if (!wrapper) return;
-        const photoId = wrapper.getAttribute("data-photo-id");
-        if (!photoId) return;
-        const csrftoken = getCookie("csrftoken");
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
 
-        if (likeSound) {
-          try { likeSound.currentTime = 0; likeSound.play(); } catch (err) {}
-        }
+      // Cherche photoId dans le wrapper du feed
+      let wrapper = btn.closest(".photo-card-wrapper");
+      let photoId = wrapper ? wrapper.getAttribute("data-photo-id") : null;
 
-        try {
-          const res = await fetch(`/photo/${encodeURIComponent(photoId)}/like/`, {
-            method: "POST",
-            headers: {
-              "X-CSRFToken": csrftoken,
-              "Accept": "application/json",
-            },
-          });
-          if (!res.ok) throw new Error("Network error");
-          const data = await res.json();
+      // fallback pour la page blog détail
+      if (!photoId) {
+        wrapper = btn.closest(".blog-photo");
+        photoId = wrapper ? wrapper.getAttribute("data-photo-id") : btn.dataset.photoId;
+      }
 
-          btn.innerHTML = data.liked ? heartFilledSvg() : heartEmptySvg();
-          const countEl = wrapper.querySelector(".likes-count");
-          if (countEl && typeof data.likes_count !== "undefined") countEl.textContent = data.likes_count;
-          btn.classList.toggle("liked", !!data.liked);
-        } catch (err) {
-          console.error("Like failed", err);
-        }
-      });
+      if (!photoId) return;
+
+      const csrftoken = getCookie("csrftoken");
+
+      // jouer le son like
+      if (likeSound) {
+        try { likeSound.currentTime = 0; likeSound.play(); } catch (err) {}
+      }
+
+      try {
+        const res = await fetch(`/photo/${encodeURIComponent(photoId)}/like/`, {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": csrftoken,
+            "Accept": "application/json",
+          },
+        });
+        if (!res.ok) throw new Error("Network error");
+        const data = await res.json();
+
+        // Mettre à jour le bouton et le compteur
+        btn.innerHTML = data.liked ? heartFilledSvg() : heartEmptySvg();
+        const countEl = wrapper.querySelector(".likes-count");
+        if (countEl && typeof data.likes_count !== "undefined") countEl.textContent = data.likes_count;
+        btn.classList.toggle("liked", !!data.liked);
+      } catch (err) {
+        console.error("Like failed", err);
+      }
     });
-  }
+  });
+}
 
   // ---------- infinite scroll ----------
   let loading = false;

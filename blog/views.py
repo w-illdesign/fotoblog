@@ -3,7 +3,7 @@ import re
 from collections import Counter
 
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse, NoReverseMatch
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.views.generic import CreateView, ListView, View, DetailView, FormView
 from django.http import JsonResponse, HttpResponseForbidden
@@ -16,7 +16,8 @@ from django.db.models import Count
 from . import forms, models
 from .models import Photo, Blog, Like
 from .forms import BlogForm, PhotoForm, FollowUsersForm
-from .algorithme import compute_feed_for_user  # adapte si le module s'appelle autrement
+from .algorithme import compute_feed_for_user  
+from blog.utils import publications_time 
 
 User = get_user_model()
 
@@ -48,17 +49,6 @@ def auto_extract_tags(text, max_tags=5):
 # ======================================================
 # Page d'accueil
 # ======================================================
-
-# blog/views.py (extrait : HomeView)
-from django.urls import reverse, NoReverseMatch
-from django.views.generic import ListView
-from django.http import JsonResponse
-from django.db.models import Count
-
-from .models import Photo, Like
-from .algorithme import compute_feed_for_user
-from blog.utils import facebook_time  # la fonction partagée que tu as déplacée dans blog/utils.py
-
 
 class HomeView(ListView):
     template_name = "blog/home.html"
@@ -266,7 +256,7 @@ class HomeView(ListView):
 
                 # date_facebook pré-calculée (sécurisé)
                 try:
-                    date_fb = facebook_time(getattr(photo, "date_created", None))
+                    date_fb = publications_time(getattr(photo, "date_created", None))
                 except Exception:
                     date_fb = ""
 
@@ -318,7 +308,7 @@ class HomeView(ListView):
         photo_dates_facebook = {}
         for photo in photos_list:
             try:
-                photo_dates_facebook[photo.id] = facebook_time(photo.date_created)
+                photo_dates_facebook[photo.id] = publications_time(photo.date_created)
             except Exception:
                 photo_dates_facebook[photo.id] = ""
         context["photo_dates_facebook"] = photo_dates_facebook
@@ -341,6 +331,12 @@ class HomeView(ListView):
 # ======================================================
 # Détail d'un blog
 # ======================================================
+from django.shortcuts import get_object_or_404, render
+from django.views.generic import DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from .models import Blog, Photo, Like
+
 class BlogDetailView(LoginRequiredMixin, DetailView):
     model = Blog
     template_name = "blog/view_blog.html"
@@ -351,14 +347,24 @@ class BlogDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        photo = getattr(self.object, "photo", None)
-        context["user_liked"] = photo.likes.filter(user=user).exists() if photo else False
-        context["likes_count"] = photo.likes.count() if photo else 0
-        context["profile_photo"] = getattr(user, "profile_photo", None)
+        blog = self.object
+        photo = getattr(blog, "photo", None)
 
-        # exposer les tags (sécurisé)
+        # Likes
+        if photo:
+            likes_count = photo.likes.count()
+            user_liked = photo.likes.filter(user=user).exists() if user.is_authenticated else False
+            context["photo_likes"] = {photo.id: user_liked}
+        else:
+            likes_count = 0
+            context["photo_likes"] = {}
+
+        context["likes_count"] = likes_count
+        context["user_liked"] = photo.likes.filter(user=user).exists() if photo and user.is_authenticated else False
+
+        # Exposer les tags de blog et photo
         try:
-            context["blog_tags"] = list(self.object.tags.all())
+            context["blog_tags"] = list(blog.tags.all())
         except Exception:
             context["blog_tags"] = []
 
@@ -367,8 +373,10 @@ class BlogDetailView(LoginRequiredMixin, DetailView):
         except Exception:
             context["photo_tags"] = []
 
-        return context
+        # Photo de profil de l'utilisateur courant
+        context["profile_photo"] = getattr(user, "profile_photo", None)
 
+        return context
 # ======================================================
 # Upload de photo simple (avec tags + auto-extract)
 # ======================================================
@@ -664,13 +672,13 @@ class FollowUsersView(LoginRequiredMixin, FormView):
         form.save()
         return super().form_valid(form)
 
-
-
-
-from django.views.generic import ListView
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from blog.models import Photo, Like
+from django.views.generic import ListView
+from django.db.models import Count
+from django.http import JsonResponse
+
+from .models import Photo, Like
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
@@ -681,20 +689,102 @@ class UserProfileView(ListView):
 
     def get_queryset(self):
         self.profile_user = get_object_or_404(User, username=self.kwargs['username'])
-        return Photo.objects.filter(uploader=self.profile_user).order_by('-date_created')
+        # Annotation pour likes_count pour éviter de compter à chaque photo
+        return Photo.objects.filter(uploader=self.profile_user).annotate(likes_count=Count('likes')).order_by('-date_created')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        photos_qs = self.get_queryset()
         context['profile_user'] = self.profile_user
-        context['photos_count'] = self.get_queryset().count()
-        context['followers_count'] = self.profile_user.followers.count()
-        context['likes_count'] = sum(photo.likes.count() for photo in self.get_queryset())
+        context['photos_count'] = photos_qs.count()
+        try:
+            context['followers_count'] = self.profile_user.followers.count()
+        except Exception:
+            context['followers_count'] = 0
+        try:
+            context['likes_count'] = sum(photo.likes_count for photo in photos_qs)
+        except Exception:
+            context['likes_count'] = 0
 
-        # Dictionnaire pour savoir quelles photos l'utilisateur connecté a likées
+        # Dictionnaire photo_id -> liked par l'utilisateur connecté
         if self.request.user.is_authenticated:
-            user_likes = Like.objects.filter(user=self.request.user, photo__in=self.get_queryset())
+            user_likes = Like.objects.filter(user=self.request.user, photo__in=photos_qs)
             context['photo_likes'] = {like.photo.id: True for like in user_likes}
         else:
             context['photo_likes'] = {}
 
+        # Préparer la date_facebook si besoin (comme dans home.js)
+        try:
+            from .utils import publications_time
+            context['photo_dates_facebook'] = {photo.id: publications_time(photo.date_created) for photo in photos_qs}
+        except Exception:
+            context['photo_dates_facebook'] = {photo.id: str(photo.date_created) for photo in photos_qs}
+
         return context
+
+    def _is_json_request(self):
+        r = self.request
+        return (
+            r.headers.get('x-requested-with') == 'XMLHttpRequest'
+            or 'application/json' in (r.headers.get('accept') or '')
+            or 'offset' in r.GET
+        )
+
+    def get(self, request, *args, **kwargs):
+        if self._is_json_request():
+            offset = int(request.GET.get('offset', 0) or 0)
+            limit = int(request.GET.get('limit', self.paginate_by) or self.paginate_by)
+            feed_qs = self.get_queryset()
+            feed_list = list(feed_qs)
+            total = len(feed_list)
+            batch = feed_list[offset:offset+limit]
+
+            # likes de l'utilisateur courant
+            photo_ids = [p.id for p in batch]
+            photo_likes = {}
+            if request.user.is_authenticated and photo_ids:
+                liked_ids = Like.objects.filter(user=request.user, photo_id__in=photo_ids).values_list('photo_id', flat=True)
+                photo_likes = {pid: True for pid in liked_ids}
+
+            items = []
+            for photo in batch:
+                uploader = getattr(photo, 'uploader', None)
+                profile_photo_url = getattr(getattr(uploader, 'profile_photo', None), 'url', '') if uploader else None
+                try:
+                    likes_count = int(getattr(photo, 'likes_count', photo.likes.count()))
+                except Exception:
+                    likes_count = 0
+                liked_flag = bool(photo_likes.get(photo.id, False))
+                # date_facebook si possible
+                try:
+                    from .utils import publications_time
+                    date_fb = publications_time(photo.date_created)
+                except Exception:
+                    date_fb = str(photo.date_created)
+                items.append({
+                    'id': photo.id,
+                    'url': getattr(getattr(photo, 'image', None), 'url', None),
+                    'caption': photo.caption or '',
+                    'uploader': {
+                        'id': uploader.id if uploader else None,
+                        'username': uploader.username if uploader else '',
+                        'profile_photo': profile_photo_url,
+                        'role': getattr(uploader, 'role', '') if uploader else '',
+                        'profile_url': f'/profile/{uploader.username}/' if uploader else ''
+                    },
+                    'likes_count': likes_count,
+                    'liked': liked_flag,
+                    'date_created': photo.date_created.isoformat() if photo.date_created else None,
+                    'date_facebook': date_fb
+                })
+
+            return JsonResponse({
+                'photos': items,
+                'offset': offset,
+                'limit': limit,
+                'returned': len(items),
+                'has_next': offset + limit < total,
+                'total': total
+            })
+
+        return super().get(request, *args, **kwargs)

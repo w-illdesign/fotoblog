@@ -12,21 +12,7 @@
 <!-- CSS spécifique à la page -->
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
 
-
-<div class="button-container">
-    {% if user.is_authenticated %}
-        {% if perms.blog.add_blog %}
-            <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
-            <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
-        {% else %}
-            <a href="{% url 'follow_users' %}" class="btn-create">Suivre des créateurs</a>
-            <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
-        {% endif %}
-    {% else %}
-        <a href="{% url 'login' %}" class="btn-create">Se connecter</a>
-        <a href="{% url 'signup' %}" class="btn-upload">S'inscrire</a>
-    {% endif %}
-</div>
+{% include 'partials/action_buttons.html' with profile_mode=False %}
 
 <div id="feed-container" class="photo-gallery" data-initial-offset="{{ photos|length }}">
     {% for photo in photos %}
@@ -35,7 +21,12 @@
             <div class="photo-card">
                 <div class="photo-image-container">
                     <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
-                    <div class="user-info-overlay">
+                    
+                    
+                    
+                  
+                        <a href="{% url 'user-profile' username=photo.uploader.username %}" class="user-info-overlay">
+      
                         <div class="profile-photo small">
                             {% if photo.uploader.profile_photo %}
                                 <img src="{{ photo.uploader.profile_photo.url }}" alt="{{ photo.uploader.username }}">
@@ -46,9 +37,8 @@
                         <div class="details small">
     <p class="uploader-line">
         <!-- Lien vers le profil utilisateur -->
-        <a href="{% url 'user-profile' username=photo.uploader.username %}" class="profile-link">
-            {{ photo.uploader.username }}
-        </a>
+              {{ photo.uploader.username }}
+        
 
         {% if photo.uploader.role == 'Creator' %}
             <svg class="creator-badge" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Creator badge">
@@ -66,64 +56,24 @@
             </svg>
         {% endif %}
     </p>
-    <div class="date small">{{ photo.date_created|facebook_time }}</div>
-</div></div>
-                </div>
-                <div class="photo-info">
-                    <p class="caption">
-                        {% if related_blog %}
-                            <a href="{% url 'view_blog' related_blog.id %}" class="photo-card-link">
-                                {{ related_blog.title }} <span class="link-lire">... Lire</span>
-                            </a>
-                        {% else %}
-                            {{ photo.caption }}
-                        {% endif %}
-                    </p>
-                </div>
+    <div class="date small">{{ photo.date_created|publications_time }}</div>
+</div></a>
 
-                <div class="photo-actions">
-                    <div class="action comments">
-                        <button class="comment-btn" title="Commenter">
-                            <span class="comments-count">2K</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
-                        </button>
-                    </div>
 
-                    <div class="action comments">
-                        <button class="comment-btn" title="Partager">
-                            <span class="comments-count">5</span>
-                            
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                            </svg>
-                            
-                        </button>
-                    </div>
 
-                    <div class="action likes">
-                        <span class="likes-count">{{ photo.likes.count }}</span>
-                        <button class="like-btn {% if photo_likes|dict_get:photo.id %}liked{% endif %}" title="J'aime">
-                            {% if photo_likes|dict_get:photo.id %}
-                                <svg class="heart-svg filled" xmlns="http://www.w3.org/2000/svg" fill="red" viewBox="0 0 24 24">
-                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                            {% else %}
-                                <svg class="heart-svg empty" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                            {% endif %}
-                        </button>
-                    </div>
                 </div>
-            </div>
-        </div>
+                
+                
+                {% include "partials/publications_action.html" with photo=photo related_blog=photo.related_blog photo_likes=photo_likes %}
+                
+                
+</div>
+</div>
         {% endwith %}
     {% endfor %}
 </div>
 
-<div id="feed-loader" class="feed-loader" aria-hidden="true" style="display:none;"></div>
-
-<audio id="likeSound" src="{% static 'audio/audiocutter_facebook-like-sound-effect2.mp3' %}" preload="auto" style="display:none;"></audio>
+{% include 'partials/feed_loader.html' %}
 
 {% if user.is_authenticated and not user.profile_photo %}
 <div id="profileModal" class="modal">
@@ -151,10 +101,8 @@
 </div>
 {% endif %}
 
-<!-- Styles internes pour l'overlay et badge créateur -->
-<style>
 
-</style>
+
 
 <!-- JS spécifique à la page -->
 <script src="{% static 'js/home.js' %}" defer></script>

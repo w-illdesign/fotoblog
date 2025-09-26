@@ -20,7 +20,7 @@ def user_directory_path(instance, filename):
 from django.utils import timezone
 from django.utils.formats import date_format
 
-def facebook_time(value):
+def publications_time(value):
     """
     Même logique que ton filter : renvoie le label 'À l’instant', 'Il y a X minutes', etc.
     """

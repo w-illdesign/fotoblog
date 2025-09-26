@@ -1,0 +1,33 @@
+{# partial: templates/partials/action_buttons.html #}
+{# Usage: inclure ce partial en passant profile_mode=True pour le profil #}
+
+{# Ligne principale de boutons #}
+<div class="button-container" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+    {% if user.is_authenticated %}
+        {% if profile_mode %}
+            {# Boutons du profil #}
+            <a href="#" class="btn-edit">{% if not user.profile_photo %}Ajouter un profil{% else %}Changer le profil{% endif %}</a>
+            <a href="#" class="btn-edit">Ma gallerie</a>
+        {% endif %}
+
+        {% if perms.blog.add_blog %}
+            <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
+            <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
+        {% else %}
+            <a href="{% url 'follow_users' %}" class="btn-create">Suivre des créateurs</a>
+            <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
+        {% endif %}
+
+    {% else %}
+        {# Utilisateur non connecté #}
+        <a href="{% url 'login' %}" class="btn-create">Se connecter</a>
+        <a href="{% url 'signup' %}" class="btn-upload">S'inscrire</a>
+    {% endif %}
+</div>
+
+{# Bouton “Suivre d'autres créateurs” sur sa propre ligne #}
+{% if user.is_authenticated and profile_mode and perms.blog.add_blog %}
+<div class="button-container" style="margin-top:0.5rem;">
+    <a href="{% url 'follow_users' %}" class="btn-create">Suivre d'autres créateurs</a>
+</div>
+{% endif %}

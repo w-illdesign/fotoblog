@@ -1,23 +1,22 @@
 {% extends 'base.html' %}
 {% block content %}
-{% load custom_tags %}
+
 {% load static %}
-{% load time_blog %}
+
 
 
 <h2 class="logo" style="display:none;">
 {% block header_title %}
-<a href="{% url 'home' %}"  >
+<a href="#" onclick="history.back(); return false;">
   {% if request.user == profile_user %}
-Retour 
- {% else %}
- Accueil
- {% endif %}  
+    Mon Profil
+  {% else %}
+    {{ profile_user.username }}
+  {% endif %}
 </a>
- 
-{% endblock %}
 
 
+{% endblock %}    
 
 {% block deconnexion %}{% if request.user == profile_user %}
 <a href="{% url 'logout' %}" class="btn">Paramètre</a>
@@ -46,200 +45,20 @@ Retour
 
 <header id="hero-header-user-profil" style="background : none;">
     
-  <div class="hero-inner">
-    <div class="brand" style="text-align:center;">
-       
-<!-- HEADER PROFIL --><h1>
-      <div class="profile-photo">
-          
-        {% if profile_user.profile_photo %}
-          <img src="{{ profile_user.profile_photo.url }}" alt="{{ profile_user.username }}">
-        {% else %}
-          <img src="{% static 'icons/default_profile.png' %}" alt="Avatar par défaut">
-        {% endif %}
-      </div>
-
-
-<h1>{{ profile_user.username }}</h1>
-{% if profile_user.role  == "Subscriber" %}
-      <p class="lead">Abonné</p>
-
-      <!-- Stats -->
-      <div class="profile-stats" style="display:flex; justify-content:center; gap:2rem; margin-top:1rem;">
-        
-        
-        {% else %}
-        <p class="lead">Créateur</p>
-        <div class="profile-stats" style="display:flex; justify-content:center; gap:2rem; margin-top:1rem;">
-        
-        <div class="stat">
-            <span>{{ followers_count }}</span>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-               stroke-width="1.8" stroke="currentColor" class="icon" style="width:24px;height:24px;">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a7.5 7.5 0 0115 0v.75H4.5v-.75z" />
-          </svg>
-          
-        </div>
-        {% endif %}
-
-        <div class="stat">
-          
-          <span>{{ photos_count }} Publication{% if photos_count > 1 %}s{% endif %}</span>
-        </div>
-
-        <div class="stat">
-            <span>{{ likes_count }}</span>
-          <svg xmlns="http://www.w3.org/2000/svg"
-          
-           {% if photos_count >= 0 and photos_count < 10 %}   
-           
-             fill="#179900"
-             
-           {% elif photos_count >= 10 and photos_count < 20  %}  
-            
-            fill="#009980"
-            
-            {% elif photos_count < 30 %}  
-             fill="#005a99"
-             
-              {% else %}  
-             fill="#990006"
-            {% endif %} 
-            
-            viewBox="0 0 24 24" class="icon" style="width:24px;height:24px;">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09
-                     C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
-          
-        </div>
-      </div>
-    </div>
-  </div>
+  {% include 'partials/hero-header.html' with is_own_profile=True %}
 </header>
 
 
-{% if user.is_authenticated and user == profile_user %}
-    <div class="button-container">
-            <a href="#" class="btn-edit">Ma gallerie</a><a href="#" class="btn-edit">{% if not user.profile_photo %}
-            Ajouter un profil 
-            {% else %}
-            Changer le profil 
-            {% endif %}
-            </a>
-        </div>
-    
-        <div class="button-container">
-            {% if perms.blog.add_blog %}
-                <a href="{% url 'create_blog_post' %}" class="btn-create">Créer un billet</a>
-                <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
-                
-            {% else %}
-                <a href="{% url 'follow_users' %}" class="btn-create">Suivre des créateurs</a>
-                <a href="{% url 'photo_upload' %}" class="btn-upload">Une photo</a>
-            {% endif %}
-            
-</div>
-            <!-- Nouveau bouton pour modifier son profil -->
-    <div class="button-container">
-            {% if perms.blog.add_blog %}
-                
-                <a href="{% url 'follow_users' %}" class="btn-create">Suivre d'autres créateurs</a>
-            {% endif %}
-            
-            </div>
-{% endif %}
+{% include 'partials/action_buttons.html' with profile_mode=True %}
 
 <!-- GALERIE DE PHOTOS -->
 <div id="feed-container" class="photo-gallery" data-initial-offset="{{ photos|length }}">
     {% for photo in photos %}
         {% with photo.blog_set.all|first as related_blog %}
-        <div class="photo-card-wrapper" data-photo-id="{{ photo.id }}">
-            <div class="photo-card">
-                <div class="photo-image-container">
-                    <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
-                    <div class="user-info-overlay">
-                        <div class="profile-photo small">
-                            {% if photo.uploader.profile_photo %}
-                                <img src="{{ photo.uploader.profile_photo.url }}" alt="{{ photo.uploader.username }}">
-                            {% else %}
-                                <img src="{% static 'icons/default_profile.png' %}" alt="Photo par défaut">
-                            {% endif %}
-                        </div>
-                        <div class="details small">
-                            <p class="uploader-line">
-                                <!-- Lien vers le profil -->
-                                
-                                    {{ photo.uploader.username }}
-                                
-                                {% if photo.uploader.role == 'Creator' %}
-                                    <svg class="creator-badge" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Creator badge">
-                <defs>
-                    <linearGradient id="gCreator" x1="0" x2="1" y1="0" y2="1">
-                        <stop offset="0" stop-color="#3AB0FF"/>
-                        <stop offset="1" stop-color="#1DA1F2"/>
-                    </linearGradient>
-                    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                        <feDropShadow dx="0" dy="1.5" stdDeviation="2" flood-color="#0b76c9" flood-opacity="0.35"/>
-                    </filter>
-                </defs>
-                <circle cx="12" cy="12" r="11.2" fill="url(#gCreator)" filter="url(#shadow)" />
-                <path d="M8.6 12.2 L11 14.6 L15.6 9.8" fill="none" stroke="#fff" stroke-width="2.2"/>
-            </svg>
-                                {% endif %}
-                            </p>
-                            <div class="date small">{{ photo.date_created|facebook_time }}</div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="photo-info">
-                    <p class="caption">
-                        {% if related_blog %}
-                            <a href="{% url 'view_blog' related_blog.id %}" class="photo-card-link">
-                                {{ related_blog.title }} <span class="link-lire">... Lire</span>
-                            </a>
-                        {% else %}
-                            {{ photo.caption }}
-                        {% endif %}
-                    </p>
-                </div>
+        {% include "partials/photo_card_header.html" with photo=photo %}
+        {% include "partials/publications_action.html" with photo=photo related_blog=related_blog photo_likes=photo_likes %}
 
-                <div class="photo-actions">
-    <div class="action comments">
-        <button class="comment-btn" title="Commenter">
-            <span class="comments-count">2K</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-        </button>
-    </div>
-
-    <div class="action comments">
-        <button class="comment-btn" title="Partager">
-            <span class="comments-count">5</span>
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-        </button>
-    </div>
-
-    <div class="action likes">
-        <span class="likes-count">{{ photo.likes.count }}</span>
-        <button class="like-btn {% if photo_likes|dict_get:photo.id %}liked{% endif %}" title="J'aime" data-photo-id="{{ photo.id }}">
-            {% if photo_likes|dict_get:photo.id %}
-                <svg class="heart-svg filled" xmlns="http://www.w3.org/2000/svg" fill="red" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
-                             C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-            {% else %}
-                <svg class="heart-svg empty" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09 
-                             C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-            {% endif %}
-        </button>
-    </div>
 </div>
             </div>
         </div>
@@ -255,10 +74,7 @@ Retour
     {% endfor %}
 </div>
 
-<div id="feed-loader" class="feed-loader" aria-hidden="true" style="display:none;"></div>
-
-<!-- Son pour like -->
-<audio id="likeSound" src="{% static 'audio/audiocutter_facebook-like-sound-effect2.mp3' %}" preload="auto" style="display:none;"></audio>
+{% include 'partials/feed_loader.html' %}
 
 <!-- JS pour likes AJAX -->
 <script src="{% static 'js/home.js' %}" defer></script>
